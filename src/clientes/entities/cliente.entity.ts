@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import { Factura } from "src/facturas/entities/factura.entity";
+>>>>>>> 2af48dc (Agregar entidad DetalleFactura y Facturas y relaciones con Factura)
 import { Mascota } from "src/mascotas/entities/mascota.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
@@ -23,4 +27,10 @@ export class Cliente {
     
     @OneToMany(() => Mascota, (mascota) => mascota.cliente)
     mascotas: Mascota[];
+<<<<<<< HEAD
+=======
+
+    @OneToMany(() => Factura, (factura) => factura.cliente)
+    facturas: Factura[];
+>>>>>>> 2af48dc (Agregar entidad DetalleFactura y Facturas y relaciones con Factura)
 }
