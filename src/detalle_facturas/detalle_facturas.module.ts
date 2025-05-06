@@ -8,5 +8,6 @@ import { DetalleFacturaService } from './detalle_facturas.service';
   imports: [TypeOrmModule.forFeature([DetalleFactura])],
   controllers: [DetalleFacturaController],
   providers: [DetalleFacturaService],
+  exports: [TypeOrmModule, DetalleFacturaService],
 })
 export class DetalleFacturaModule {}
