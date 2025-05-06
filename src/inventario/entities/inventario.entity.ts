@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Subcategoria } from "src/subcategorias/entities/subcategoria.entity";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Inventario {
@@ -17,6 +18,6 @@ export class Inventario {
     @Column({ type: 'decimal', precision: 10, scale: 2 })
     precio_unitario: number;
 
-    @Column({ type: 'varchar', length: 100 })
-    categoria: string;
+    @ManyToOne(() => Subcategoria, (subcategoria) => subcategoria.inventarios)
+    subcategoria: Subcategoria;
 }

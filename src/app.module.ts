@@ -20,6 +20,8 @@ import { Cita } from './citas/entities/cita.entity';
 import { Inventario } from './inventario/entities/inventario.entity';
 import { Factura } from './facturas/entities/factura.entity';
 import { DetalleFactura } from './detalle_facturas/entities/detalle_factura.entity';
+import { CategoriasModule } from './categorias/categorias.module';
+import { SubcategoriasModule } from './subcategorias/subcategorias.module';
 
 @Module({
   imports: [
@@ -43,7 +45,7 @@ import { DetalleFactura } from './detalle_facturas/entities/detalle_factura.enti
         DetalleFactura,
       ],
       synchronize: true,
-    }),ClientesModule, UsuariosModule, AuthModule, MascotasModule, HistorialesMedicosModule, CitasModule, InventarioModule, FacturasModule, DetalleFacturaModule],
+    }),ClientesModule, UsuariosModule, AuthModule, MascotasModule, HistorialesMedicosModule, CitasModule, InventarioModule, FacturasModule, DetalleFacturaModule, CategoriasModule, SubcategoriasModule],
   controllers: [AppController],
   providers: [AppService],
 })
