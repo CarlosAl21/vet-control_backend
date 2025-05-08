@@ -22,6 +22,9 @@ import { Factura } from './facturas/entities/factura.entity';
 import { DetalleFactura } from './detalle_facturas/entities/detalle_factura.entity';
 import { CategoriasModule } from './categorias/categorias.module';
 import { SubcategoriasModule } from './subcategorias/subcategorias.module';
+import { ProductosModule } from './productos/productos.module';
+import { LotesModule } from './lotes/lotes.module';
+import { ProveedoresModule } from './proveedores/proveedores.module';
 
 @Module({
   imports: [
@@ -45,7 +48,7 @@ import { SubcategoriasModule } from './subcategorias/subcategorias.module';
         DetalleFactura,
       ],
       synchronize: true,
-    }),ClientesModule, UsuariosModule, AuthModule, MascotasModule, HistorialesMedicosModule, CitasModule, InventarioModule, FacturasModule, DetalleFacturaModule, CategoriasModule, SubcategoriasModule],
+    }),ClientesModule, UsuariosModule, AuthModule, MascotasModule, HistorialesMedicosModule, CitasModule, InventarioModule, FacturasModule, DetalleFacturaModule, CategoriasModule, SubcategoriasModule, ProductosModule, LotesModule, ProveedoresModule],
   controllers: [AppController],
   providers: [AppService],
 })

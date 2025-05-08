@@ -19,16 +19,16 @@ export class SubcategoriasController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.subcategoriasService.findOne(+id);
+    return this.subcategoriasService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSubcategoriaDto: UpdateSubcategoriaDto) {
-    return this.subcategoriasService.update(+id, updateSubcategoriaDto);
+    return this.subcategoriasService.update(id, updateSubcategoriaDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.subcategoriasService.remove(+id);
+    return this.subcategoriasService.remove(id);
   }
 }

@@ -4,10 +4,10 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 @Entity()
 export class Categoria {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id_categoria: string;
 
     @Column({ type: 'varchar', length: 100 })
-    nome: string;
+    nombre: string;
 
     @OneToMany(() => Subcategoria, (subcategoria) => subcategoria.categoria)
     subcategorias: Subcategoria[];
