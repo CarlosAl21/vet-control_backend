@@ -21,18 +21,46 @@ export class ProductosService {
   }
 
   findAll() {
-    return `This action returns all productos`;
+    return this.productoRepository.find();
   }
 
   async findOne(id: string) {
-    return `This action returns a #${id} producto`;
+    try {
+      const producto = await this.productoRepository.findOne({ where: {id_producto:id} });
+      if (!producto) {
+        throw new Error('Producto no encontrado');
+      }
+      return producto;
+    } catch (error) {
+      console.error('Error al buscar el producto', error);
+      throw new Error('Error al buscar el producto');
+    }
   }
 
   async update(id: string, updateProductoDto: UpdateProductoDto) {
-    return `This action updates a #${id} producto`;
+    try {
+      const producto = await this.productoRepository.findOne({ where: {id_producto:id} });
+      if (!producto) {
+        throw new Error('Producto no encontrado');
+      }
+      this.productoRepository.merge(producto, updateProductoDto);
+      return await this.productoRepository.save(producto);
+    } catch (error) {
+      console.error('Error al actualizar el producto', error);
+      throw new Error('Error al actualizar el producto');
+    }
   }
 
   async remove(id: string) {
-    return `This action removes a #${id} producto`;
+    try {
+      const producto = await this.productoRepository.findOne({ where: {id_producto:id} });
+      if (!producto) {
+        throw new Error('Producto no encontrado');
+      }
+      return await this.productoRepository.remove(producto);
+    } catch (error) {
+      console.error('Error al eliminar el producto', error);
+      throw new Error('Error al eliminar el producto');
+    }
   }
 }

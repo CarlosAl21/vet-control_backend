@@ -25,6 +25,7 @@ import { SubcategoriasModule } from './subcategorias/subcategorias.module';
 import { ProductosModule } from './productos/productos.module';
 import { LotesModule } from './lotes/lotes.module';
 import { ProveedoresModule } from './proveedores/proveedores.module';
+import { EmpresasModule } from './empresas/empresas.module';
 
 @Module({
   imports: [
@@ -48,7 +49,7 @@ import { ProveedoresModule } from './proveedores/proveedores.module';
         DetalleFactura,
       ],
       synchronize: true,
-    }),ClientesModule, UsuariosModule, AuthModule, MascotasModule, HistorialesMedicosModule, CitasModule, InventarioModule, FacturasModule, DetalleFacturaModule, CategoriasModule, SubcategoriasModule, ProductosModule, LotesModule, ProveedoresModule],
+    }),ClientesModule, UsuariosModule, AuthModule, MascotasModule, HistorialesMedicosModule, CitasModule, InventarioModule, FacturasModule, DetalleFacturaModule, CategoriasModule, SubcategoriasModule, ProductosModule, LotesModule, ProveedoresModule, EmpresasModule],
   controllers: [AppController],
   providers: [AppService],
 })
