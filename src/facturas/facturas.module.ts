@@ -4,10 +4,12 @@ import { FacturasService } from './facturas.service';
 import { FacturasController } from './facturas.controller';
 import { Factura } from './entities/factura.entity';
 import { Cliente } from 'src/clientes/entities/cliente.entity';
+import { Empresa } from 'src/empresas/entities/empresa.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Factura, Cliente])],
+  imports: [TypeOrmModule.forFeature([Factura, Cliente, Empresa])],
   controllers: [FacturasController],
   providers: [FacturasService],
+  exports: [FacturasService],
 })
 export class FacturasModule {}

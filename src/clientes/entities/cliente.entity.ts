@@ -1,6 +1,7 @@
+import { Empresa } from "src/empresas/entities/empresa.entity";
 import { Factura } from "src/facturas/entities/factura.entity";
 import { Mascota } from "src/mascotas/entities/mascota.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Cliente {
@@ -21,10 +22,15 @@ export class Cliente {
 
     @Column({ type: 'varchar', length: 50 })
     direccion: string;
+
+    @ManyToOne(() => Empresa, (empresa) => empresa.clientes)
+    id_empresa: Empresa;
     
     @OneToMany(() => Mascota, (mascota) => mascota.cliente)
     mascotas: Mascota[];
     
     @OneToMany(() => Factura, (factura) => factura.cliente)
     facturas: Factura[];
+
+
 }
