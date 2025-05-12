@@ -9,7 +9,6 @@ import { AuthModule } from './auth/auth.module';
 import { MascotasModule } from './mascotas/mascotas.module';
 import { HistorialesMedicosModule } from './historiales_medicos/historiales_medicos.module';
 import { CitasModule } from './citas/citas.module';
-import { InventarioModule } from './inventario/inventario.module';
 import { FacturasModule } from './facturas/facturas.module';
 import { DetalleFacturaModule } from './detalle_facturas/detalle_facturas.module';
 import { Cliente } from './clientes/entities/cliente.entity';
@@ -17,7 +16,6 @@ import { Usuario } from './usuarios/entities/usuario.entity';
 import { Mascota } from './mascotas/entities/mascota.entity';
 import { HistorialesMedico } from './historiales_medicos/entities/historiales_medico.entity';
 import { Cita } from './citas/entities/cita.entity';
-import { Inventario } from './inventario/entities/inventario.entity';
 import { Factura } from './facturas/entities/factura.entity';
 import { DetalleFactura } from './detalle_facturas/entities/detalle_factura.entity';
 import { CategoriasModule } from './categorias/categorias.module';
@@ -26,6 +24,7 @@ import { ProductosModule } from './productos/productos.module';
 import { LotesModule } from './lotes/lotes.module';
 import { ProveedoresModule } from './proveedores/proveedores.module';
 import { EmpresasModule } from './empresas/empresas.module';
+import { Empresa } from './empresas/entities/empresa.entity';
 
 @Module({
   imports: [
@@ -44,12 +43,12 @@ import { EmpresasModule } from './empresas/empresas.module';
         Mascota,
         HistorialesMedico,
         Cita,
-        Inventario,
         Factura,,
         DetalleFactura,
+        Empresa,
       ],
       synchronize: true,
-    }),ClientesModule, UsuariosModule, AuthModule, MascotasModule, HistorialesMedicosModule, CitasModule, InventarioModule, FacturasModule, DetalleFacturaModule, CategoriasModule, SubcategoriasModule, ProductosModule, LotesModule, ProveedoresModule, EmpresasModule],
+    }),ClientesModule, UsuariosModule, AuthModule, MascotasModule, HistorialesMedicosModule, CitasModule, FacturasModule, DetalleFacturaModule, CategoriasModule, SubcategoriasModule, ProductosModule, LotesModule, ProveedoresModule, EmpresasModule],
   controllers: [AppController],
   providers: [AppService],
 })
