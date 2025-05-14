@@ -18,7 +18,7 @@ export class FacturasService {
 
   async create(createFacturaDto: CreateFacturaDto) {
     const cliente = await this.clienteRepository.findOne({
-      where: { id_cliente: createFacturaDto.id_cliente },
+      where: { id_cliente: createFacturaDto.id_cliente.id_cliente },
     });
   
     if (!cliente) {

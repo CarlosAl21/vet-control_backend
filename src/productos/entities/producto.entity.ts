@@ -1,4 +1,4 @@
-import { Inventario } from "src/inventario/entities/inventario.entity";
+import { Empresa } from "src/empresas/entities/empresa.entity";
 import { Lote } from "src/lotes/entities/lote.entity";
 import { Subcategoria } from "src/subcategorias/entities/subcategoria.entity";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
@@ -20,9 +20,10 @@ export class Producto {
     @ManyToOne(() => Subcategoria, (subcategoria) => subcategoria.productos)
     subcategoria: Subcategoria; // Relación con la entidad Subcategoria
 
+    @ManyToOne(() => Empresa, (empresa) => empresa.productos)
+    id_empresa: Empresa; // Relación con la entidad Empresa
+
     @OneToMany(() => Lote, (lote) => lote.producto)
     lotes: Lote[]; // Relación con la entidad Lote
 
-    @OneToMany(() => Inventario, (inventario) => inventario.producto)
-    inventarios: Inventario[]; // Relación con la entidad Inventario
 }
