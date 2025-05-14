@@ -20,4 +20,8 @@ export class CreateDetalleFacturaDto {
   @IsInt()
   @IsNotEmpty()
   id_factura: number;
+
+  @IsInt()
+  @IsNotEmpty()
+  id_lote: number;
 }

@@ -7,7 +7,10 @@ import { Inventario } from './entities/inventario.entity';
 
 @Injectable()
 export class InventarioService {
-  constructor(@InjectRepository(Inventario) private inventarioRepository: Repository<Inventario>) {
+  constructor(
+    @InjectRepository(Inventario)
+    private readonly inventarioRepository: Repository<Inventario>,
+  ) {
     console.log('Servicio de inventario inicializado');
   }
   async create(createInventarioDto: CreateInventarioDto) {

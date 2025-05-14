@@ -23,7 +23,7 @@ export class Usuario {
     @Column({ type: 'varchar', length: 50 })
     rol: string;
 
-    @OneToMany(() => Cita, (citas) => citas.usuario)
+    @OneToMany(() => Cita, cita => cita.usuario)
     citas: Cita[];
 
     @BeforeInsert()

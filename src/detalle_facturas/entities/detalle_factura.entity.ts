@@ -1,4 +1,5 @@
 import { Factura } from 'src/facturas/entities/factura.entity';
+import { Lote } from 'src/lotes/entities/lote.entity';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 
 @Entity('detalle_factura')
@@ -20,4 +21,7 @@ export class DetalleFactura {
 
   @ManyToOne(() => Factura, factura => factura.detalles)
   factura: Factura;
+
+  @ManyToOne(() => Lote)
+  lote: Lote;
 }
