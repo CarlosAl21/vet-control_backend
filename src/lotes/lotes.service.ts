@@ -13,19 +13,38 @@ export class LotesService {
   ) {}
 
   async create(dto: CreateLoteDto): Promise<Lote> {
-    const lote = this.loteRepository.create(dto);
+    const now = new Date();
+    const fechaVencimiento = new Date(dto.fecha_venc);
+
+    const estado = fechaVencimiento < now ? 'No disponible' : 'Disponible';
+
+    const lote = this.loteRepository.create({
+      ...dto,
+      estado, // fuerza el estado basado en la fecha
+    });
+
     return this.loteRepository.save(lote);
   }
+
 
   async findAll(): Promise<Lote[]> {
     return this.loteRepository.find();
   }
 
-  async findOne(id: number): Promise<Lote> {
-    const lote = await this.loteRepository.findOneBy({ id_lote: id });
-    if (!lote) throw new NotFoundException('Lote no encontrado');
-    return lote;
+async findOne(id: number): Promise<Lote> {
+  const lote = await this.loteRepository.findOneBy({ id_lote: id });
+  if (!lote) throw new NotFoundException('Lote no encontrado');
+
+  const now = new Date();
+  const vencido = new Date(lote.fecha_venc) < now;
+  const nuevoEstado = vencido ? 'No disponible' : 'Disponible';
+
+  if (lote.estado !== nuevoEstado) {
+    lote.estado = nuevoEstado;
+    await this.loteRepository.save(lote);
   }
+  return lote;
+}
 
   async update(id: number, dto: UpdateLoteDto): Promise<Lote> {
     const lote = await this.findOne(id);
