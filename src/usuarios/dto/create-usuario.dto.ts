@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsString } from "class-validator";
+import { Empresa } from "src/empresas/entities/empresa.entity";
 
 export class CreateUsuarioDto {
     @IsString()
@@ -16,5 +17,8 @@ export class CreateUsuarioDto {
     @IsString()
     @IsNotEmpty()
     contraseña: string;
+
+    @IsNotEmpty()
+    id_empresa: Empresa; // Cambiado a string para reflejar el ID de la empresa
 
 }

@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsString } from "class-validator";
+import { Empresa } from "src/empresas/entities/empresa.entity";
 
 export class CreateClienteDto {
     @IsString()
@@ -20,4 +21,7 @@ export class CreateClienteDto {
     @IsString()
     @IsNotEmpty()
     direccion: string;
+    
+    @IsNotEmpty()
+    id_empresa: Empresa; // Cambiado a string para reflejar el ID de la empresa
 }

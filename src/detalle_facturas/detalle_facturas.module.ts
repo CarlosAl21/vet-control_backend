@@ -9,5 +9,6 @@ import { LotesModule } from 'src/lotes/lotes.module';
   imports: [TypeOrmModule.forFeature([DetalleFactura]), LotesModule],
   controllers: [DetalleFacturaController],
   providers: [DetalleFacturaService],
+  exports: [TypeOrmModule, DetalleFacturaService],
 })
 export class DetalleFacturaModule {}

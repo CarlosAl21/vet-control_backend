@@ -1,7 +1,8 @@
 
-import { BeforeInsert, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Cita } from 'src/citas/entities/cita.entity';
+import { Empresa } from 'src/empresas/entities/empresa.entity';
 
 @Entity()
 export class Usuario {
@@ -23,7 +24,10 @@ export class Usuario {
     @Column({ type: 'varchar', length: 50 })
     rol: string;
 
-    @OneToMany(() => Cita, cita => cita.usuario)
+    @ManyToOne(() => Empresa, (empresa) => empresa.usuarios)
+    id_empresa: Empresa;
+
+    @OneToMany(() => Cita, (citas) => citas.usuario)
     citas: Cita[];
 
     @BeforeInsert()
