@@ -7,7 +7,7 @@ import { Mascota } from 'src/mascotas/entities/mascota.entity';
 import { Cita } from './entities/cita.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Usuario, Mascota, Cita])],
+  imports: [TypeOrmModule.forFeature([Cita, Usuario, Mascota])],
   controllers: [CitasController],
   providers: [CitasService],
   exports: [CitasService],

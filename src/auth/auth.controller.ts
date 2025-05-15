@@ -2,6 +2,7 @@ import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
+import { Empresa } from 'src/empresas/entities/empresa.entity'; // Asegúrate de que la entidad Empresa esté correctamente importada
 
 @Controller('auth')
 export class AuthController {
@@ -10,7 +11,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  async register(@Body() body: {email:string, nombre:string, apellido:string, contraseña: string}) {
+  async register(@Body() body: {email:string, nombre:string, apellido:string, contraseña: string, id_empresa: Empresa}) {
     return this.usuarioService.create(body); // Llama al servicio de usuario para crear un nuevo usuario
   }
 

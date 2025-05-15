@@ -22,6 +22,6 @@ export class Proveedor {
     @ManyToOne(() => Empresa, (empresa) => empresa.proveedores)
     empresa: Empresa; // Relación con la entidad Empresa
 
-    @OneToMany(() => Lote, (lote) => lote.proveedor)
+    @OneToMany(() => Lote, (lote) => lote.id_proveedor)
     lotes: Lote[]; // Relación con la entidad Lote
 }

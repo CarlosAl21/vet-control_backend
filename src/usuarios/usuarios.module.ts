@@ -9,7 +9,6 @@ import { Empresa } from 'src/empresas/entities/empresa.entity';
   imports: [TypeOrmModule.forFeature([Usuario, Empresa])],
   controllers: [UsuariosController],
   providers: [UsuariosService],
-  exports: [UsuariosService], // Exportamos el servicio para que pueda ser utilizado en otros módulos
-  // Si necesitas importar otros módulos, puedes hacerlo aquí
+  exports: [UsuariosService], // si lo usas en otros módulos
 })
 export class UsuariosModule {}

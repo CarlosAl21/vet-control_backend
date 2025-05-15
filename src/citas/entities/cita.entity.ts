@@ -16,7 +16,7 @@ export class Cita {
     @Column({type: 'varchar', length: 50})
     estado: string;
 
-    @ManyToOne(() => Usuario, (usuario) => usuario.citas)
+    @ManyToOne(() => Usuario, usuario => usuario.citas)
     usuario: Usuario;
 
     @ManyToOne(() => Mascota, (mascota) => mascota.citas)

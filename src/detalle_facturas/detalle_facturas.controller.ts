@@ -18,17 +18,17 @@ export class DetalleFacturaController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id') id: string) {
     return this.detalleService.findOne(id);
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() dto: UpdateDetalleFacturaDto) {
+  update(@Param('id') id: string, @Body() dto: UpdateDetalleFacturaDto) {
     return this.detalleService.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: string) {
     return this.detalleService.remove(id);
   }
 }

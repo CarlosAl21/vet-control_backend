@@ -6,7 +6,7 @@ import { Mascota } from 'src/mascotas/entities/mascota.entity';
 import { HistorialesMedico } from './entities/historiales_medico.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Mascota, HistorialesMedico])], // Asegúrate de importar la entidad HistorialMedico aquí
+  imports: [TypeOrmModule.forFeature([HistorialesMedico, Mascota])],
   controllers: [HistorialesMedicosController],
   providers: [HistorialesMedicosService],
 })

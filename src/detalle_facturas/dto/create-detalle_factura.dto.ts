@@ -1,4 +1,7 @@
+import { DeepPartial } from 'typeorm';
 import { IsInt, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { Factura } from 'src/facturas/entities/factura.entity';
+import { Lote } from 'src/lotes/entities/lote.entity';
 
 export class CreateDetalleFacturaDto {
   @IsString()
@@ -19,5 +22,9 @@ export class CreateDetalleFacturaDto {
 
   @IsInt()
   @IsNotEmpty()
-  id_factura: number;
+  id_factura: DeepPartial<Factura>;
+
+  @IsInt()
+  @IsNotEmpty()
+  id_lote: DeepPartial<Lote>;
 }

@@ -1,5 +1,6 @@
 import { Cliente } from "src/clientes/entities/cliente.entity";
 import { Factura } from "src/facturas/entities/factura.entity";
+import { Lote } from "src/lotes/entities/lote.entity";
 import { Producto } from "src/productos/entities/producto.entity";
 import { Proveedor } from "src/proveedores/entities/proveedor.entity";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
@@ -39,4 +40,7 @@ export class Empresa {
 
     @OneToMany(() => Producto, (producto) => producto.id_empresa)
     productos: Producto[]; // Relación con la entidad Productos
+
+    @OneToMany(() => Lote, (lote) => lote.id_empresa)
+    lotes: Lote[]; // Relación con la entidad Lote
 }
