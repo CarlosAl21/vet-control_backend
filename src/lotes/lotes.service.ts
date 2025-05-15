@@ -31,7 +31,7 @@ export class LotesService {
     return this.loteRepository.find();
   }
 
-async findOne(id: number): Promise<Lote> {
+async findOne(id: string): Promise<Lote> {
   const lote = await this.loteRepository.findOneBy({ id_lote: id });
   if (!lote) throw new NotFoundException('Lote no encontrado');
 
@@ -46,19 +46,19 @@ async findOne(id: number): Promise<Lote> {
   return lote;
 }
 
-  async update(id: number, dto: UpdateLoteDto): Promise<Lote> {
+  async update(id: string, dto: UpdateLoteDto): Promise<Lote> {
     const lote = await this.findOne(id);
     Object.assign(lote, dto);
     return this.loteRepository.save(lote);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     const lote = await this.findOne(id);
     await this.loteRepository.remove(lote);
   }
 
-  async descontarStock(id_lote: number, cantidad: number): Promise<void> {
-    const lote = await this.findOne(id_lote);
+  async descontarStock(id_lote: string, cantidad: number): Promise<void> {
+    const lote = await this.loteRepository.findOne({where: { id_lote: id_lote }});
 
     if (cantidad > lote.stock_actual) {
       throw new BadRequestException('Cantidad solicitada supera el stock disponible');

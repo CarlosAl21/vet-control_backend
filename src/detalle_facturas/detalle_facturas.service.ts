@@ -5,31 +5,27 @@ import { DetalleFactura } from './entities/detalle_factura.entity';
 import { CreateDetalleFacturaDto } from './dto/create-detalle_factura.dto';
 import { UpdateDetalleFacturaDto } from './dto/update-detalle_factura.dto';
 import { LotesService } from 'src/lotes/lotes.service';
+import { Lote } from 'src/lotes/entities/lote.entity';
 
 @Injectable()
 export class DetalleFacturaService {
   constructor(
     @InjectRepository(DetalleFactura)
     private readonly detalleRepo: Repository<DetalleFactura>,
-    private readonly lotesService: LotesService,
+    @InjectRepository(Lote)
+    private readonly lotesRepository: Repository<Lote>,
+    private readonly lotesService: LotesService, // Asegúrate de que este servicio esté correctamente in
   ) {}
 
   async create(dto: CreateDetalleFacturaDto) {
-    const lote = await this.lotesService.findOne(dto.id_lote);
+    const lote = await this.lotesRepository.findOne({where: {id_lote: dto.id_lote.id_lote}});
     if (lote.estado !== 'Disponible') {
       throw new BadRequestException('El producto no está disponible');
     }
 
-    await this.lotesService.descontarStock(dto.id_lote, dto.cantidad);
+    await this.lotesService.descontarStock(dto.id_lote.id_lote, dto.cantidad);
 
-    const detalle = this.detalleRepo.create({
-      descripcion: dto.descripcion,
-      cantidad: dto.cantidad,
-      precio_unitario: dto.precio_unitario,
-      subtotal: dto.subtotal,
-      lote: { id_lote: dto.id_lote },       // relación ManyToOne, solo asignas el id
-      factura: { id_factura: dto.id_factura } // igual para factura
-    });
+    const detalle = this.detalleRepo.create(dto);
 
     return this.detalleRepo.save(detalle);
   }
@@ -38,15 +34,15 @@ export class DetalleFacturaService {
     return this.detalleRepo.find({ relations: ['factura'] });
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.detalleRepo.findOne({ where: { id_detalle: id }, relations: ['factura'] });
   }
 
-  update(id: number, dto: UpdateDetalleFacturaDto) {
+  update(id: string, dto: UpdateDetalleFacturaDto) {
     return this.detalleRepo.update(id, dto);
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.detalleRepo.delete(id);
   }
 }

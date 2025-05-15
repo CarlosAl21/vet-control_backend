@@ -1,9 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { DetalleFactura } from 'src/detalle_facturas/entities/detalle_factura.entity';
+import { Empresa } from 'src/empresas/entities/empresa.entity';
+import { Producto } from 'src/productos/entities/producto.entity';
+import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity('lotes')
 export class Lote {
-  @PrimaryGeneratedColumn()
-  id_lote: number;
+  @PrimaryGeneratedColumn('uuid')
+  id_lote: string;
 
   @Column()
   codigo_lote: string;
@@ -20,12 +24,15 @@ export class Lote {
   @Column()
   estado: string;
 
-  @Column()
-  id_producto: number;
+  @OneToMany(()=> DetalleFactura, (detalleFactura) => detalleFactura.id_lote)
+  detalles: DetalleFactura[];
 
-  @Column()
-  id_proveedor: number;
+  @ManyToOne(() => Producto, (producto) => producto.lotes)  
+  id_producto: Producto;
 
-  @Column()
-  id_empresa: number;
+  @ManyToOne(() => Proveedor, (proveedor) => proveedor.lotes)
+  id_proveedor: Proveedor;
+
+  @ManyToOne(() => Empresa, (empresa) => empresa.lotes)
+  id_empresa: Empresa;
 }

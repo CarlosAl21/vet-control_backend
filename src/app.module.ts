@@ -25,6 +25,11 @@ import { LotesModule } from './lotes/lotes.module';
 import { ProveedoresModule } from './proveedores/proveedores.module';
 import { EmpresasModule } from './empresas/empresas.module';
 import { Empresa } from './empresas/entities/empresa.entity';
+import { Lote } from './lotes/entities/lote.entity';
+import { Categoria } from './categorias/entities/categoria.entity';
+import { Producto } from './productos/entities/producto.entity';
+import { Proveedor } from './proveedores/entities/proveedor.entity';
+import { Subcategoria } from './subcategorias/entities/subcategoria.entity';
 
 @Module({
   imports: [
@@ -38,14 +43,19 @@ import { Empresa } from './empresas/entities/empresa.entity';
       database: process.env.DB_NAME,
       autoLoadEntities: true,
       entities: [
-        Cliente,
-        Usuario,
-        Mascota,
-        HistorialesMedico,
+        Categoria,
         Cita,
-        Factura,,
+        Cliente,
         DetalleFactura,
         Empresa,
+        Factura,
+        HistorialesMedico,
+        Lote,
+        Mascota,
+        Producto,
+        Proveedor,
+        Subcategoria,
+        Usuario,
       ],
       synchronize: true,
     }),ClientesModule, UsuariosModule, AuthModule, MascotasModule, HistorialesMedicosModule, CitasModule, FacturasModule, DetalleFacturaModule, CategoriasModule, SubcategoriasModule, ProductosModule, LotesModule, ProveedoresModule, EmpresasModule],

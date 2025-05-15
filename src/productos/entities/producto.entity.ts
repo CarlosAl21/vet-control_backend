@@ -23,7 +23,7 @@ export class Producto {
     @ManyToOne(() => Empresa, (empresa) => empresa.productos)
     id_empresa: Empresa; // Relación con la entidad Empresa
 
-    @OneToMany(() => Lote, (lote) => lote.producto)
+    @OneToMany(() => Lote, (lote) => lote.id_producto)
     lotes: Lote[]; // Relación con la entidad Lote
 
 }
