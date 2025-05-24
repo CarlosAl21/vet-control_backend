@@ -8,7 +8,9 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsuariosService {
-  constructor(@InjectRepository(Usuario) private readonly usuarioRepository: Repository<Usuario>) {
+  constructor(
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,){
     console.log('Servicio de usuarios inicializado');
   }
 

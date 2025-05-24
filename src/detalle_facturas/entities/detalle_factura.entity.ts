@@ -1,12 +1,13 @@
 import { Factura } from 'src/facturas/entities/factura.entity';
+import { Lote } from 'src/lotes/entities/lote.entity';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 
 @Entity('detalle_factura')
 export class DetalleFactura {
-  @PrimaryGeneratedColumn()
-  id_detalle: number;
+  @PrimaryGeneratedColumn('uuid')
+  id_detalle: string;
 
-  @Column('text')
+  @Column('varchar', { length: 255 })
   descripcion: string;
 
   @Column('int')
@@ -20,4 +21,7 @@ export class DetalleFactura {
 
   @ManyToOne(() => Factura, factura => factura.detalles)
   factura: Factura;
+
+  @ManyToOne(() => Lote, lote => lote.detalles)
+  id_lote: Lote;
 }

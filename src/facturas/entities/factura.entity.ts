@@ -1,5 +1,6 @@
 import { Cliente } from "src/clientes/entities/cliente.entity";
 import { DetalleFactura } from "src/detalle_facturas/entities/detalle_factura.entity";
+import { Empresa } from "src/empresas/entities/empresa.entity";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('facturas')
@@ -19,7 +20,11 @@ import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "ty
     @ManyToOne(() => Cliente, (cliente) => cliente.facturas)
     cliente: Cliente;
 
+    @ManyToOne(() => Empresa, (empresa) => empresa.facturas)
+    id_empresa: Empresa;
+
     @OneToMany(() => DetalleFactura, (detalle) => detalle.factura)
     detalles: DetalleFactura[];
+    
   }
   

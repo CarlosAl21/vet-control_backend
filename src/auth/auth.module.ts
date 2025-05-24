@@ -8,10 +8,11 @@ import { PassportModule } from '@nestjs/passport';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { UsuariosModule } from 'src/usuarios/usuarios.module';
 import { JwtStrategy } from './jwt.strategy';
+import { Empresa } from 'src/empresas/entities/empresa.entity'; // Asegúrate de que la entidad Empresa esté correctamente importada
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Usuario]),
+    TypeOrmModule.forFeature([Usuario, Empresa]), // Asegúrate de que la entidad Usuario esté correctamente importada
     ConfigModule,
     UsuariosModule,
     PassportModule,
