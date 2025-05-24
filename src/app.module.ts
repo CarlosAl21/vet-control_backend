@@ -33,14 +33,15 @@ import { Subcategoria } from './subcategorias/entities/subcategoria.entity';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({isGlobal: true}),
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: process.env.DB_TYPE as any,
       host: process.env.DB_HOST,
-      port: +(process.env.DB_PORT || 3306),
+      port: +(process.env.DB_PORT || 5432),
       username: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
+      schema: process.env.DB_SCHEMA,
       autoLoadEntities: true,
       entities: [
         Categoria,
@@ -57,8 +58,26 @@ import { Subcategoria } from './subcategorias/entities/subcategoria.entity';
         Subcategoria,
         Usuario,
       ],
+      extra: {
+        options: `-c search_path=${process.env.DB_SCHEMA}`,
+      },
       synchronize: true,
-    }),ClientesModule, UsuariosModule, AuthModule, MascotasModule, HistorialesMedicosModule, CitasModule, FacturasModule, DetalleFacturaModule, CategoriasModule, SubcategoriasModule, ProductosModule, LotesModule, ProveedoresModule, EmpresasModule],
+    }),
+    ClientesModule,
+    UsuariosModule,
+    AuthModule,
+    MascotasModule,
+    HistorialesMedicosModule,
+    CitasModule,
+    FacturasModule,
+    DetalleFacturaModule,
+    CategoriasModule,
+    SubcategoriasModule,
+    ProductosModule,
+    LotesModule,
+    ProveedoresModule,
+    EmpresasModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
