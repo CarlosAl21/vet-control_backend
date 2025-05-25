@@ -37,12 +37,16 @@ export class UsuariosService {
       if (existingUser) {
         throw new Error('El email ya está en uso');
       }
+      // Buscar la empresa por ID
       const empresa = await this.usuarioRepository.manager.findOne('Empresa', { where: { id_empresa: createUsuarioDto.id_empresa } });
       if (!empresa) {
         throw new Error('Empresa no encontrada');
       }
-      createUsuarioDto.id_empresa = empresa; // Asignar la entidad Empresa al DTO
-      const nuevoUsuario = this.usuarioRepository.create(createUsuarioDto);
+      // Quitar id_empresa del DTO antes de hacer el spread
+      const { id_empresa, ...rest } = createUsuarioDto;
+      // Crear el usuario con la relación correcta
+      const usuarioData = { ...rest, id_empresa: empresa };
+      const nuevoUsuario = this.usuarioRepository.create(usuarioData);
       return await this.usuarioRepository.save(nuevoUsuario); 
     } catch (error) {
       console.error('Error al crear el usuario:', error);
@@ -76,7 +80,15 @@ export class UsuariosService {
       if (updateUsuarioDto.email && !this.validarEmail(updateUsuarioDto.email)) {
         throw new Error('El email no es válido');
       }
-      this.usuarioRepository.merge(usuario, updateUsuarioDto);
+      let updateData: any = { ...updateUsuarioDto };
+      if (updateUsuarioDto.id_empresa) {
+        const empresa = await this.usuarioRepository.manager.findOne('Empresa', { where: { id_empresa: updateUsuarioDto.id_empresa } });
+        if (!empresa) {
+          throw new Error('Empresa no encontrada');
+        }
+        updateData.id_empresa = empresa;
+      }
+      this.usuarioRepository.merge(usuario, updateData);
       return this.usuarioRepository.save(usuario);
     } catch (error) {
       console.error('Error al actualizar el usuario:', error);

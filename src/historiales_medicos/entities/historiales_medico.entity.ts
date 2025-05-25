@@ -1,5 +1,5 @@
 import { Mascota } from "src/mascotas/entities/mascota.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class HistorialesMedico {
@@ -19,5 +19,6 @@ export class HistorialesMedico {
     notas: string;
 
     @ManyToOne(() => Mascota, (mascota) => mascota.historiales_medicos)
-    mascota: Mascota;
+    @JoinColumn({ name: 'id_mascota' })
+    id_mascota: Mascota;
 }

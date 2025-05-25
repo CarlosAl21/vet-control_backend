@@ -1,7 +1,7 @@
 import { Cliente } from "src/clientes/entities/cliente.entity";
 import { DetalleFactura } from "src/detalle_facturas/entities/detalle_factura.entity";
 import { Empresa } from "src/empresas/entities/empresa.entity";
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('facturas')
   export class Factura {
@@ -18,12 +18,14 @@ import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "ty
     metodo_pago: string;
   
     @ManyToOne(() => Cliente, (cliente) => cliente.facturas)
-    cliente: Cliente;
+    @JoinColumn({ name: 'id_cliente' })
+    id_cliente: Cliente;
 
     @ManyToOne(() => Empresa, (empresa) => empresa.facturas)
+    @JoinColumn({ name: 'id_empresa' })
     id_empresa: Empresa;
 
-    @OneToMany(() => DetalleFactura, (detalle) => detalle.factura)
+    @OneToMany(() => DetalleFactura, (detalle) => detalle.id_factura)
     detalles: DetalleFactura[];
     
   }

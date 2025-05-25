@@ -1,6 +1,6 @@
 import { Factura } from 'src/facturas/entities/factura.entity';
 import { Lote } from 'src/lotes/entities/lote.entity';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 
 @Entity('detalle_factura')
 export class DetalleFactura {
@@ -20,8 +20,10 @@ export class DetalleFactura {
   subtotal: number;
 
   @ManyToOne(() => Factura, factura => factura.detalles)
-  factura: Factura;
+  @JoinColumn({ name: 'id_factura' })
+  id_factura: Factura;
 
   @ManyToOne(() => Lote, lote => lote.detalles)
+  @JoinColumn({ name: 'id_lote' })
   id_lote: Lote;
 }

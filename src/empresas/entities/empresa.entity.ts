@@ -26,7 +26,7 @@ export class Empresa {
     @Column({ type: 'varchar', length: 100 })
     email: string; // Correo electrónico de la empresa
 
-    @OneToMany(() => Proveedor, (proveedor) => proveedor.empresa)
+    @OneToMany(() => Proveedor, (proveedor) => proveedor.id_empresa)
     proveedores: Proveedor[]; // Relación con la entidad Proveedor
 
     @OneToMany(() => Factura, (factura) => factura.id_empresa)

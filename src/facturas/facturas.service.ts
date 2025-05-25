@@ -27,7 +27,7 @@ export class FacturasService {
   
     const nuevaFactura = this.facturaRepository.create({
       ...createFacturaDto,
-      cliente,
+      id_cliente: cliente,
     });
   
     return this.facturaRepository.save(nuevaFactura);

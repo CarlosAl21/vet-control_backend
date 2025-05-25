@@ -1,6 +1,6 @@
 import { Categoria } from "src/categorias/entities/categoria.entity";
 import { Producto } from "src/productos/entities/producto.entity";
-import { Column, Entity, In, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, In, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Subcategoria {
@@ -8,12 +8,13 @@ export class Subcategoria {
     id_subcategoria: string;
 
     @ManyToOne(() => Categoria, (categoria) => categoria.subcategorias)
-    categoria: Categoria;
+    @JoinColumn({ name: 'id_categoria' })
+    id_categoria: Categoria;
 
     @Column({ type: 'varchar', length: 100 })
     nombre: string;
 
-    @OneToMany(() => Producto, (producto) => producto.subcategoria)
+    @OneToMany(() => Producto, (producto) => producto.id_subcategoria)
     productos: Producto[];
 
 }

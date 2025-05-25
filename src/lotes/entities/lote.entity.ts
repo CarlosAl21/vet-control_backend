@@ -2,7 +2,7 @@ import { DetalleFactura } from 'src/detalle_facturas/entities/detalle_factura.en
 import { Empresa } from 'src/empresas/entities/empresa.entity';
 import { Producto } from 'src/productos/entities/producto.entity';
 import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 
 @Entity('lotes')
 export class Lote {
@@ -27,12 +27,15 @@ export class Lote {
   @OneToMany(()=> DetalleFactura, (detalleFactura) => detalleFactura.id_lote)
   detalles: DetalleFactura[];
 
-  @ManyToOne(() => Producto, (producto) => producto.lotes)  
+  @ManyToOne(() => Producto, (producto) => producto.lotes)
+  @JoinColumn({ name: 'id_producto' })  
   id_producto: Producto;
 
   @ManyToOne(() => Proveedor, (proveedor) => proveedor.lotes)
+  @JoinColumn({ name: 'id_proveedor' })
   id_proveedor: Proveedor;
 
   @ManyToOne(() => Empresa, (empresa) => empresa.lotes)
+  @JoinColumn({ name: 'id_empresa' })
   id_empresa: Empresa;
 }

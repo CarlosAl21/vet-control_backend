@@ -1,6 +1,6 @@
 import { Empresa } from "src/empresas/entities/empresa.entity";
 import { Lote } from "src/lotes/entities/lote.entity";
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Proveedor {
@@ -20,7 +20,8 @@ export class Proveedor {
     email: string; // Correo electrónico del proveedor
 
     @ManyToOne(() => Empresa, (empresa) => empresa.proveedores)
-    empresa: Empresa; // Relación con la entidad Empresa
+    @JoinColumn({ name: 'id_empresa' })
+    id_empresa: Empresa; // Relación con la entidad Empresa
 
     @OneToMany(() => Lote, (lote) => lote.id_proveedor)
     lotes: Lote[]; // Relación con la entidad Lote

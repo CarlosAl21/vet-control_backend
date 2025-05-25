@@ -1,6 +1,6 @@
 import { Mascota } from "src/mascotas/entities/mascota.entity";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
-import { BeforeInsert, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Cita {
@@ -17,10 +17,12 @@ export class Cita {
     estado: string;
 
     @ManyToOne(() => Usuario, usuario => usuario.citas)
-    usuario: Usuario;
+    @JoinColumn({ name: 'id_usuario' })
+    id_usuario: Usuario;
 
     @ManyToOne(() => Mascota, (mascota) => mascota.citas)
-    mascota: Mascota;
+    @JoinColumn({ name: 'id_mascota' })
+    id_mascota: Mascota;
 
     @BeforeInsert()
     setEstado() {

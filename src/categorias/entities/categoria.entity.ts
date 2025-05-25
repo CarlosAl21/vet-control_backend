@@ -9,6 +9,6 @@ export class Categoria {
     @Column({ type: 'varchar', length: 100 })
     nombre: string;
 
-    @OneToMany(() => Subcategoria, (subcategoria) => subcategoria.categoria)
+    @OneToMany(() => Subcategoria, (subcategoria) => subcategoria.id_categoria)
     subcategorias: Subcategoria[];
 }

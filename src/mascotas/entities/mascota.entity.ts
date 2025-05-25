@@ -1,7 +1,7 @@
 import { Cita } from "src/citas/entities/cita.entity";
 import { Cliente } from "src/clientes/entities/cliente.entity";
 import { HistorialesMedico } from "src/historiales_medicos/entities/historiales_medico.entity";
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Mascota {
@@ -29,9 +29,9 @@ export class Mascota {
     @ManyToOne(() => Cliente, (cliente) => cliente.mascotas)
     cliente: Cliente;
 
-    @OneToMany(() => HistorialesMedico, (historialMedico) => historialMedico.mascota)
+    @OneToMany(() => HistorialesMedico, (historialMedico) => historialMedico.id_mascota)
     historiales_medicos: HistorialesMedico[];
 
-    @OneToMany(() => Cita, (cita) => cita.mascota)
+    @OneToMany(() => Cita, (cita) => cita.id_mascota)
     citas: Cita[];
 }

@@ -40,6 +40,5 @@ export class CreateUsuarioDto {
         description: 'ID de la empresa a la que pertenece el usuario',
     })
     @IsNotEmpty()
-    @IsString()
-    id_empresa: string;
+    id_empresa: string; // Puede ser un string o una entidad Empresa, dependiendo de cómo se maneje la relación en tu aplicación
 }
