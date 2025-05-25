@@ -40,5 +40,6 @@ export class CreateUsuarioDto {
         description: 'ID de la empresa a la que pertenece el usuario',
     })
     @IsNotEmpty()
-    id_empresa: Empresa;
+    @IsString()
+    id_empresa: string;
 }

@@ -28,10 +28,20 @@ export class UsuariosService {
   }
 
   async create(createUsuarioDto: CreateUsuarioDto) {
+    console.log('Creando usuario:', createUsuarioDto);
     try {
       if (!this.validarEmail(createUsuarioDto.email)) {
         throw new Error('El email no es válido');
       }
+      const existingUser = await this.usuarioRepository.findOne({ where: { email: createUsuarioDto.email } });
+      if (existingUser) {
+        throw new Error('El email ya está en uso');
+      }
+      const empresa = await this.usuarioRepository.manager.findOne('Empresa', { where: { id_empresa: createUsuarioDto.id_empresa } });
+      if (!empresa) {
+        throw new Error('Empresa no encontrada');
+      }
+      createUsuarioDto.id_empresa = empresa; // Asignar la entidad Empresa al DTO
       const nuevoUsuario = this.usuarioRepository.create(createUsuarioDto);
       return await this.usuarioRepository.save(nuevoUsuario); 
     } catch (error) {
