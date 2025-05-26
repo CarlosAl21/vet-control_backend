@@ -5,6 +5,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from './entities/usuario.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 
 @Injectable()
 export class UsuariosService {
@@ -31,26 +37,27 @@ export class UsuariosService {
     console.log('Creando usuario:', createUsuarioDto);
     try {
       if (!this.validarEmail(createUsuarioDto.email)) {
-        throw new Error('El email no es válido');
+        throw new BadRequestException('El email no es válido');
       }
       const existingUser = await this.usuarioRepository.findOne({ where: { email: createUsuarioDto.email } });
       if (existingUser) {
-        throw new Error('El email ya está en uso');
+        throw new ConflictException('El email ya está en uso');
       }
-      // Buscar la empresa por ID
       const empresa = await this.usuarioRepository.manager.findOne('Empresa', { where: { id_empresa: createUsuarioDto.id_empresa } });
       if (!empresa) {
-        throw new Error('Empresa no encontrada');
+        throw new NotFoundException('Empresa no encontrada');
       }
-      // Quitar id_empresa del DTO antes de hacer el spread
       const { id_empresa, ...rest } = createUsuarioDto;
-      // Crear el usuario con la relación correcta
       const usuarioData = { ...rest, id_empresa: empresa };
       const nuevoUsuario = this.usuarioRepository.create(usuarioData);
       return await this.usuarioRepository.save(nuevoUsuario); 
     } catch (error) {
       console.error('Error al crear el usuario:', error);
-      throw new Error('Error al crear el usuario');
+      // Si ya es una excepción de Nest, relánzala
+      if (error instanceof BadRequestException || error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al crear el usuario');
     }
   }
 
