@@ -61,17 +61,19 @@ export class UsuariosService {
     }
   }
 
-  findAll() {
-    return this.usuarioRepository.find({relations: ['id_empresa']});
+  async findAll() {
+    const usuarios = await this.usuarioRepository.find({relations: ['id_empresa']});
+    return usuarios.map(({ contraseña, ...rest}) => rest); // Excluir la contraseña del resultado;
   }
 
   async findOne(id: string) {
     try {
-      const usuario = await this.usuarioRepository.findOneBy({ id_usuario: id });
+      const usuario = await this.usuarioRepository.findOne({ where: { id_usuario: id }, relations: ['id_empresa'] });
       if (!usuario) {
         throw new Error('Usuario no encontrado');
       }
-      return usuario;
+      const { contraseña, ...rest } = usuario;
+      return rest; // Excluir la contraseña del resultado;
     } catch (error) {
       console.error('Error al encontrar el usuario:', error);
       throw new Error('Error al encontrar el usuario');
