@@ -62,7 +62,7 @@ export class UsuariosService {
   }
 
   findAll() {
-    return this.usuarioRepository.find();
+    return this.usuarioRepository.find({relations: ['id_empresa']});
   }
 
   async findOne(id: string) {
