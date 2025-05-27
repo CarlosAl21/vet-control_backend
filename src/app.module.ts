@@ -30,6 +30,7 @@ import { Categoria } from './categorias/entities/categoria.entity';
 import { Producto } from './productos/entities/producto.entity';
 import { Proveedor } from './proveedores/entities/proveedor.entity';
 import { Subcategoria } from './subcategorias/entities/subcategoria.entity';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -78,6 +79,8 @@ import { Subcategoria } from './subcategorias/entities/subcategoria.entity';
     LotesModule,
     ProveedoresModule,
     EmpresasModule,
+    LotesModule,
+    StripeModule
   ],
   controllers: [AppController],
   providers: [AppService],
