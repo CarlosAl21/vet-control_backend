@@ -15,6 +15,7 @@ import { Module } from '@nestjs/common';
 import { join } from 'path';
 import { FacturasModule } from './facturas/facturas.module';
 import { DetalleFacturaModule } from './detalle_facturas/detalle_facturas.module';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -38,7 +39,8 @@ import { DetalleFacturaModule } from './detalle_facturas/detalle_facturas.module
     CitasModule,
     DetalleFacturaModule,
     InventarioModule,
-    LotesModule
+    LotesModule,
+    StripeModule
   ],
   controllers: [AppController],
   providers: [AppService],
