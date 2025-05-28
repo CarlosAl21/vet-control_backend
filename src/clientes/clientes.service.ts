@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -27,16 +27,19 @@ export class ClientesService {
   async create(createClienteDto: CreateClienteDto) {
     try {
       if (!this.validarEmail(createClienteDto.email)) {
-        throw new Error('El email no es válido');
+        throw new BadRequestException('El email no es válido');
       }
       if (!this.validarTelefonoEcuador(createClienteDto.telefono)) {
-        throw new Error('El teléfono no es válido para Ecuador');
+        throw new BadRequestException('El teléfono no es válido para Ecuador');
       }
       const nuevoCliente = this.clienteRepository.create(createClienteDto);
       return await this.clienteRepository.save(nuevoCliente); 
     } catch (error) {
       console.error('Error al crear el cliente:', error);
-      throw new Error('Error al crear el cliente');
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al crear el cliente');
     }
   }
 
@@ -48,12 +51,15 @@ export class ClientesService {
     try {
       const cliente = await this.clienteRepository.findOneBy({ id_cliente: id });
       if (!cliente) {
-        throw new Error('Cliente no encontrado');
+        throw new NotFoundException('Cliente no encontrado');
       }
       return cliente;
     } catch (error) {
       console.error('Error al encontrar el cliente:', error);
-      throw new Error('Error al encontrar el cliente');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al encontrar el cliente');
     }
   }
 
@@ -61,19 +67,22 @@ export class ClientesService {
     try {
       const cliente = await this.clienteRepository.findOneBy({ id_cliente: id });
       if (!cliente) {
-        throw new Error('Cliente no encontrado');
+        throw new NotFoundException('Cliente no encontrado');
       }
       if (updateClienteDto.email && !this.validarEmail(updateClienteDto.email)) {
-        throw new Error('El email no es válido');
+        throw new BadRequestException('El email no es válido');
       }
       if (updateClienteDto.telefono && !this.validarTelefonoEcuador(updateClienteDto.telefono)) {
-        throw new Error('El teléfono no es válido para Ecuador');
+        throw new BadRequestException('El teléfono no es válido para Ecuador');
       }
       this.clienteRepository.merge(cliente, updateClienteDto);
       return await this.clienteRepository.save(cliente);
     } catch (error) {
       console.error('Error al actualizar el cliente:', error);
-      throw new Error('Error al actualizar el cliente');
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al actualizar el cliente');
     }
   }
 
@@ -81,12 +90,15 @@ export class ClientesService {
     try {
       const cliente = await this.clienteRepository.findOneBy({ id_cliente: id });
       if (!cliente) {
-        throw new Error('Cliente no encontrado');
+        throw new NotFoundException('Cliente no encontrado');
       }
       return await this.clienteRepository.remove(cliente);
     } catch (error) {
       console.error('Error al eliminar el cliente:', error);
-      throw new Error('Error al eliminar el cliente');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al eliminar el cliente');
     }
   }
 }

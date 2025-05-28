@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
 
@@ -39,31 +39,45 @@ export class AuthService {
     }
 
     async validateUser(email: string, pass: string): Promise<any> {
-        const user = await this.usuarioService.validateUser(email, pass);
-        
-        if (user) {
-            const { password, ...result } = user;
-            return result;
+        try {
+            const user = await this.usuarioService.validateUser(email, pass);
+            if (user) {
+                const { password, ...result } = user;
+                return result;
+            }
+            return null;
+        } catch (error) {
+            console.error('Error al validar usuario:', error);
+            throw new InternalServerErrorException('Error al validar usuario');
         }
-        return null;
     }
 
     async login(user: any) {
-        const payload = { username: user.nombre, sub: user.id_usuario, rol: user.rol };
-        const token = this.jwtService.sign(payload);
-        // Guardar sesión en la lista de sesiones activas
-        if (!this.activeSessions.has(user.id_usuario)) {
-            this.activeSessions.set(user.id_usuario, []);
-        }
-        this.activeSessions.get(user.id_usuario)?.push(token);
+        try {
+            const payload = { username: user.nombre, sub: user.id_usuario, rol: user.rol };
+            const token = this.jwtService.sign(payload);
+            // Guardar sesión en la lista de sesiones activas
+            if (!this.activeSessions.has(user.id_usuario)) {
+                this.activeSessions.set(user.id_usuario, []);
+            }
+            this.activeSessions.get(user.id_usuario)?.push(token);
 
-        return { access_token: token };
+            return { access_token: token };
+        } catch (error) {
+            console.error('Error al iniciar sesión:', error);
+            throw new InternalServerErrorException('Error al iniciar sesión');
+        }
     }
     
     async logout(id: string, token: string) {
-        const tokens = this.activeSessions.get(id);
-        if (tokens) {
-            this.activeSessions.set(id, tokens.filter(t => t !== token));
+        try {
+            const tokens = this.activeSessions.get(id);
+            if (tokens) {
+                this.activeSessions.set(id, tokens.filter(t => t !== token));
+            }
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+            throw new InternalServerErrorException('Error al cerrar sesión');
         }
     }
 

@@ -70,13 +70,16 @@ export class UsuariosService {
     try {
       const usuario = await this.usuarioRepository.findOne({ where: { id_usuario: id }, relations: ['id_empresa'] });
       if (!usuario) {
-        throw new Error('Usuario no encontrado');
+        throw new NotFoundException('Usuario no encontrado');
       }
       const { contraseña, ...rest } = usuario;
       return rest; // Excluir la contraseña del resultado;
     } catch (error) {
       console.error('Error al encontrar el usuario:', error);
-      throw new Error('Error al encontrar el usuario');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al encontrar el usuario');
     }
   }
 
@@ -84,16 +87,16 @@ export class UsuariosService {
     try {
       const usuario = await this.usuarioRepository.findOneBy({ id_usuario: id });
       if (!usuario) {
-        throw new Error('Usuario no encontrado');
+        throw new NotFoundException('Usuario no encontrado');
       }
       if (updateUsuarioDto.email && !this.validarEmail(updateUsuarioDto.email)) {
-        throw new Error('El email no es válido');
+        throw new BadRequestException('El email no es válido');
       }
       let updateData: any = { ...updateUsuarioDto };
       if (updateUsuarioDto.id_empresa) {
         const empresa = await this.usuarioRepository.manager.findOne('Empresa', { where: { id_empresa: updateUsuarioDto.id_empresa } });
         if (!empresa) {
-          throw new Error('Empresa no encontrada');
+          throw new NotFoundException('Empresa no encontrada');
         }
         updateData.id_empresa = empresa;
       }
@@ -101,7 +104,13 @@ export class UsuariosService {
       return this.usuarioRepository.save(usuario);
     } catch (error) {
       console.error('Error al actualizar el usuario:', error);
-      throw new Error('Error al actualizar el usuario');
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al actualizar el usuario');
     }
   }
 
@@ -109,13 +118,15 @@ export class UsuariosService {
     try {
       const usuario = await this.usuarioRepository.findOneBy({ id_usuario: id });
       if (!usuario) {
-        throw new Error('Usuario no encontrado');
+        throw new NotFoundException('Usuario no encontrado');
       }
       await this.usuarioRepository.delete(id);
     } catch (error) {
       console.error('Error al eliminar el usuario:', error);
-      throw new Error('Error al eliminar el usuario');
-      
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al eliminar el usuario');
     }
   }
 }

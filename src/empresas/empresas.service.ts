@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { CreateEmpresaDto } from './dto/create-empresa.dto';
 import { UpdateEmpresaDto } from './dto/update-empresa.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,7 +17,7 @@ export class EmpresasService {
       return await this.empresaRepository.save(empresa);
     } catch (error) {
       console.error('Error al crear la empresa:', error);
-      throw new Error('Error al crear la empresa');
+      throw new InternalServerErrorException('Error al crear la empresa');
     }
   }
 
@@ -25,16 +25,19 @@ export class EmpresasService {
     return this.empresaRepository.find();
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     try {
-      const empresa = this.empresaRepository.findOne({ where: { id_empresa: id } });
+      const empresa = await this.empresaRepository.findOne({ where: { id_empresa: id } });
       if (!empresa) {
-        throw new Error('Empresa no encontrada');
+        throw new NotFoundException('Empresa no encontrada');
       }
       return empresa;
     } catch (error) {
       console.error('Error al encontrar la empresa:', error);
-      throw new Error('Error al encontrar la empresa');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al encontrar la empresa');
     }
   }
 
@@ -42,13 +45,16 @@ export class EmpresasService {
     try {
       const empresa = await this.empresaRepository.findOne({ where: { id_empresa: id } });
       if (!empresa) {
-        throw new Error('Empresa no encontrada');
+        throw new NotFoundException('Empresa no encontrada');
       }
       this.empresaRepository.merge(empresa, updateEmpresaDto);
       return this.empresaRepository.save(empresa);
     } catch (error) {
       console.error('Error al actualizar la empresa:', error);
-      throw new Error('Error al actualizar la empresa');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al actualizar la empresa');
     }
   }
 
@@ -56,12 +62,15 @@ export class EmpresasService {
     try {
       const empresa = await this.empresaRepository.findOne({ where: { id_empresa: id } });
       if (!empresa) {
-        throw new Error('Empresa no encontrada');
+        throw new NotFoundException('Empresa no encontrada');
       }
       return this.empresaRepository.remove(empresa);
     } catch (error) {
       console.error('Error al eliminar la empresa:', error);
-      throw new Error('Error al eliminar la empresa');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al eliminar la empresa');
     }
   }
 }

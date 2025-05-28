@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { CreateSubcategoriaDto } from './dto/create-subcategoria.dto';
 import { UpdateSubcategoriaDto } from './dto/update-subcategoria.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,7 +17,7 @@ export class SubcategoriasService {
       return await this.subcategoriaRepository.save(subcategoria);
     } catch (error) {
       console.error('Error al crear la Subcategoria:', error);
-      throw new Error('Error al crear la Subcategoria');
+      throw new InternalServerErrorException('Error al crear la Subcategoria');
     }
   }
 
@@ -29,12 +29,15 @@ export class SubcategoriasService {
     try {
       const subcategoria = await this.subcategoriaRepository.findOne({ where: { id_subcategoria: id } });
       if (!subcategoria) {
-        throw new Error('Subcategoria no encontrada');
+        throw new NotFoundException('Subcategoria no encontrada');
       }
       return subcategoria;
     } catch (error) {
       console.error('Error al encontrar la Subcategoria:', error);
-      throw new Error('Error al encontrar la Subcategoria');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al encontrar la Subcategoria');
     }
   }
 
@@ -42,13 +45,16 @@ export class SubcategoriasService {
     try {
       const subcategoria = await this.subcategoriaRepository.findOne({ where: { id_subcategoria: id } });
       if (!subcategoria) {
-        throw new Error('Subcategoria no encontrada');
+        throw new NotFoundException('Subcategoria no encontrada');
       }
       this.subcategoriaRepository.merge(subcategoria, updateSubcategoriaDto);
       return await this.subcategoriaRepository.save(subcategoria);
     } catch (error) {
       console.error('Error al actualizar la Subcategoria:', error);
-      throw new Error('Error al actualizar la Subcategoria');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al actualizar la Subcategoria');
     }
   }
 
@@ -56,12 +62,15 @@ export class SubcategoriasService {
     try {
       const subcategoria = await this.subcategoriaRepository.findOne({ where: { id_subcategoria: id } });
       if (!subcategoria) {
-        throw new Error('Subcategoria no encontrada');
+        throw new NotFoundException('Subcategoria no encontrada');
       }
       return await this.subcategoriaRepository.remove(subcategoria);
     } catch (error) {
       console.error('Error al eliminar la Subcategoria:', error);
-      throw new Error('Error al eliminar la Subcategoria');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al eliminar la Subcategoria');
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,7 +16,7 @@ export class ProductosService {
       return await this.productoRepository.save(nuevoProducto);
     } catch (error) {
       console.error('Error al crear el producto', error);
-      throw new Error('Error al crear el producto');
+      throw new InternalServerErrorException('Error al crear el producto');
     }
   }
 
@@ -28,12 +28,15 @@ export class ProductosService {
     try {
       const producto = await this.productoRepository.findOne({ where: {id_producto:id} });
       if (!producto) {
-        throw new Error('Producto no encontrado');
+        throw new NotFoundException('Producto no encontrado');
       }
       return producto;
     } catch (error) {
       console.error('Error al buscar el producto', error);
-      throw new Error('Error al buscar el producto');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al buscar el producto');
     }
   }
 
@@ -41,13 +44,16 @@ export class ProductosService {
     try {
       const producto = await this.productoRepository.findOne({ where: {id_producto:id} });
       if (!producto) {
-        throw new Error('Producto no encontrado');
+        throw new NotFoundException('Producto no encontrado');
       }
       this.productoRepository.merge(producto, updateProductoDto);
       return await this.productoRepository.save(producto);
     } catch (error) {
       console.error('Error al actualizar el producto', error);
-      throw new Error('Error al actualizar el producto');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al actualizar el producto');
     }
   }
 
@@ -55,12 +61,15 @@ export class ProductosService {
     try {
       const producto = await this.productoRepository.findOne({ where: {id_producto:id} });
       if (!producto) {
-        throw new Error('Producto no encontrado');
+        throw new NotFoundException('Producto no encontrado');
       }
       return await this.productoRepository.remove(producto);
     } catch (error) {
       console.error('Error al eliminar el producto', error);
-      throw new Error('Error al eliminar el producto');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al eliminar el producto');
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import Stripe from 'stripe';
 
 @Injectable()
@@ -37,8 +37,7 @@ export class StripeService {
       return session;
     } catch (error) {
       console.error('Error al crear la sesión de Stripe:', error);
-      throw new Error('No se pudo crear la sesión de pago');
+      throw new InternalServerErrorException('No se pudo crear la sesión de pago');
     }
-    
   }
 }

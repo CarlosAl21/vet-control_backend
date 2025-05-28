@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { CreateProveedoreDto } from './dto/create-proveedor.dto';
 import { UpdateProveedoreDto } from './dto/update-proveedor.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,7 +17,7 @@ export class ProveedoresService {
       return await this.proveedorRepository.save(nuevoProveedor);
     } catch (error) {
       console.error('Error al crear el proveedor:', error);
-      throw new Error('Error al crear el proveedor');
+      throw new InternalServerErrorException('Error al crear el proveedor');
     }
   }
 
@@ -29,12 +29,15 @@ export class ProveedoresService {
     try {
       const proveedor = await this.proveedorRepository.findOne({ where: { id_proveedor: id } });
       if (!proveedor) {
-        throw new Error('Proveedor no encontrado');
+        throw new NotFoundException('Proveedor no encontrado');
       }
       return proveedor;
     } catch (error) {
       console.error('Error al buscar el proveedor:', error);
-      throw new Error('Error al buscar el proveedor');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al buscar el proveedor');
     }
   }
 
@@ -42,13 +45,16 @@ export class ProveedoresService {
     try {
       const proveedor = await this.proveedorRepository.findOne({ where: { id_proveedor: id } });
       if (!proveedor) {
-        throw new Error('Proveedor no encontrado');
+        throw new NotFoundException('Proveedor no encontrado');
       }
       this.proveedorRepository.merge(proveedor, updateProveedoreDto);
       return await this.proveedorRepository.save(proveedor);
     } catch (error) {
       console.error('Error al actualizar el proveedor:', error);
-      throw new Error('Error al actualizar el proveedor');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al actualizar el proveedor');
     }
   }
 
@@ -56,12 +62,15 @@ export class ProveedoresService {
     try {
       const proveedor = await this.proveedorRepository.findOne({ where: { id_proveedor: id } });
       if (!proveedor) {
-        throw new Error('Proveedor no encontrado');
+        throw new NotFoundException('Proveedor no encontrado');
       }
       return await this.proveedorRepository.remove(proveedor);
     } catch (error) {
       console.error('Error al eliminar el proveedor:', error);
-      throw new Error('Error al eliminar el proveedor');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al eliminar el proveedor');
     }
   }
 }

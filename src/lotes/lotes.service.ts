@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Lote } from './entities/lote.entity';
@@ -13,61 +13,103 @@ export class LotesService {
   ) {}
 
   async create(dto: CreateLoteDto): Promise<Lote> {
-    const now = new Date();
-    const fechaVencimiento = new Date(dto.fecha_venc);
+    try {
+      const now = new Date();
+      const fechaVencimiento = new Date(dto.fecha_venc);
 
-    const estado = fechaVencimiento < now ? 'No disponible' : 'Disponible';
+      const estado = fechaVencimiento < now ? 'No disponible' : 'Disponible';
 
-    const lote = this.loteRepository.create({
-      ...dto,
-      estado, // fuerza el estado basado en la fecha
-    });
+      const lote = this.loteRepository.create({
+        ...dto,
+        estado, // fuerza el estado basado en la fecha
+      });
 
-    return this.loteRepository.save(lote);
+      return await this.loteRepository.save(lote);
+    } catch (error) {
+      console.error('Error al crear el lote:', error);
+      throw new InternalServerErrorException('Error al crear el lote');
+    }
   }
-
 
   async findAll(): Promise<Lote[]> {
-    return this.loteRepository.find();
+    try {
+      return await this.loteRepository.find();
+    } catch (error) {
+      console.error('Error al obtener los lotes:', error);
+      throw new InternalServerErrorException('Error al obtener los lotes');
+    }
   }
 
-async findOne(id: string): Promise<Lote> {
-  const lote = await this.loteRepository.findOneBy({ id_lote: id });
-  if (!lote) throw new NotFoundException('Lote no encontrado');
+  async findOne(id: string): Promise<Lote> {
+    try {
+      const lote = await this.loteRepository.findOneBy({ id_lote: id });
+      if (!lote) throw new NotFoundException('Lote no encontrado');
 
-  const now = new Date();
-  const vencido = new Date(lote.fecha_venc) < now;
-  const nuevoEstado = vencido ? 'No disponible' : 'Disponible';
+      const now = new Date();
+      const vencido = new Date(lote.fecha_venc) < now;
+      const nuevoEstado = vencido ? 'No disponible' : 'Disponible';
 
-  if (lote.estado !== nuevoEstado) {
-    lote.estado = nuevoEstado;
-    await this.loteRepository.save(lote);
+      if (lote.estado !== nuevoEstado) {
+        lote.estado = nuevoEstado;
+        await this.loteRepository.save(lote);
+      }
+      return lote;
+    } catch (error) {
+      console.error('Error al buscar el lote:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al buscar el lote');
+    }
   }
-  return lote;
-}
 
   async update(id: string, dto: UpdateLoteDto): Promise<Lote> {
-    const lote = await this.findOne(id);
-    Object.assign(lote, dto);
-    return this.loteRepository.save(lote);
+    try {
+      const lote = await this.findOne(id);
+      Object.assign(lote, dto);
+      return await this.loteRepository.save(lote);
+    } catch (error) {
+      console.error('Error al actualizar el lote:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al actualizar el lote');
+    }
   }
 
   async remove(id: string): Promise<void> {
-    const lote = await this.findOne(id);
-    await this.loteRepository.remove(lote);
+    try {
+      const lote = await this.findOne(id);
+      await this.loteRepository.remove(lote);
+    } catch (error) {
+      console.error('Error al eliminar el lote:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al eliminar el lote');
+    }
   }
 
   async descontarStock(id_lote: string, cantidad: number): Promise<void> {
-    const lote = await this.loteRepository.findOne({where: { id_lote: id_lote }});
+    try {
+      const lote = await this.loteRepository.findOne({where: { id_lote: id_lote }});
+      if (!lote) {
+        throw new NotFoundException('Lote no encontrado');
+      }
+      if (cantidad > lote.stock_actual) {
+        throw new BadRequestException('Cantidad solicitada supera el stock disponible');
+      }
 
-    if (cantidad > lote.stock_actual) {
-      throw new BadRequestException('Cantidad solicitada supera el stock disponible');
+      lote.stock_actual -= cantidad;
+      lote.estado = lote.stock_actual === 0 ? 'No disponible' : 'Disponible';
+
+      await this.loteRepository.save(lote);
+    } catch (error) {
+      console.error('Error al descontar stock del lote:', error);
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al descontar stock del lote');
     }
-
-    lote.stock_actual -= cantidad;
-
-    lote.estado = lote.stock_actual === 0 ? 'No disponible' : 'Disponible';
-
-    await this.loteRepository.save(lote);
   }
 }

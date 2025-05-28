@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DetalleFactura } from './entities/detalle_factura.entity';
@@ -18,32 +18,83 @@ export class DetalleFacturaService {
   ) {}
 
   async create(dto: CreateDetalleFacturaDto) {
-    const lote = await this.lotesRepository.findOne({where: {id_lote: dto.id_lote.id_lote}});
-    if (lote.estado !== 'Disponible') {
-      throw new BadRequestException('El producto no está disponible');
+    try {
+      const lote = await this.lotesRepository.findOne({where: {id_lote: dto.id_lote.id_lote}});
+      if (!lote) {
+        throw new NotFoundException('Lote no encontrado');
+      }
+      if (lote.estado !== 'Disponible') {
+        throw new BadRequestException('El producto no está disponible');
+      }
+
+      await this.lotesService.descontarStock(dto.id_lote.id_lote, dto.cantidad);
+
+      const detalle = this.detalleRepo.create(dto);
+
+      return await this.detalleRepo.save(detalle);
+    } catch (error) {
+      console.error('Error al crear el detalle de factura:', error);
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al crear el detalle de factura');
     }
-
-    await this.lotesService.descontarStock(dto.id_lote.id_lote, dto.cantidad);
-
-    const detalle = this.detalleRepo.create(dto);
-
-    return this.detalleRepo.save(detalle);
   }
 
   findAll() {
     return this.detalleRepo.find({ relations: ['factura'] });
   }
 
-  findOne(id: string) {
-    return this.detalleRepo.findOne({ where: { id_detalle: id }, relations: ['factura'] });
+  async findOne(id: string) {
+    try {
+      const detalle = await this.detalleRepo.findOne({ where: { id_detalle: id }, relations: ['factura'] });
+      if (!detalle) {
+        throw new NotFoundException('Detalle de factura no encontrado');
+      }
+      return detalle;
+    } catch (error) {
+      console.error('Error al buscar el detalle de factura:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al buscar el detalle de factura');
+    }
   }
 
-  update(id: string, dto: UpdateDetalleFacturaDto) {
-    return this.detalleRepo.update(id, dto);
+  async update(id: string, dto: UpdateDetalleFacturaDto) {
+    try {
+      const detalle = await this.detalleRepo.findOne({ where: { id_detalle: id } });
+      if (!detalle) {
+        throw new NotFoundException('Detalle de factura no encontrado');
+      }
+      this.detalleRepo.merge(detalle, dto);
+      return await this.detalleRepo.save(detalle);
+    } catch (error) {
+      console.error('Error al actualizar el detalle de factura:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al actualizar el detalle de factura');
+    }
   }
 
-  remove(id: string) {
-    return this.detalleRepo.delete(id);
+  async remove(id: string) {
+    try {
+      const detalle = await this.detalleRepo.findOne({ where: { id_detalle: id } });
+      if (!detalle) {
+        throw new NotFoundException('Detalle de factura no encontrado');
+      }
+      return await this.detalleRepo.remove(detalle);
+    } catch (error) {
+      console.error('Error al eliminar el detalle de factura:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al eliminar el detalle de factura');
+    }
   }
 }
 
