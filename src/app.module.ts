@@ -62,7 +62,7 @@ import { StripeModule } from './stripe/stripe.module';
       extra: {
         options: `-c search_path=${process.env.DB_SCHEMA}`,
       },
-      // ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
       synchronize: true,
     }),
     ClientesModule,
