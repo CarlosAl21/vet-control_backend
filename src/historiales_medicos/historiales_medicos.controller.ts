@@ -32,7 +32,7 @@ export class HistorialesMedicosController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Obtener todos los historiales médicos' })
   @ApiResponse({ status: 200, description: 'Lista de historiales médicos.' })
   @ApiResponse({ status: 401, description: 'No autorizado.' })
@@ -41,7 +41,7 @@ export class HistorialesMedicosController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Obtener historial médico por ID' })
   @ApiParam({ name: 'id', description: 'ID del historial médico', example: 'hist123' })
   @ApiResponse({ status: 200, description: 'Historial médico encontrado.' })
