@@ -1,5 +1,5 @@
-import { IsNotEmpty, IsString } from "class-validator";
-import { ApiProperty } from "@nestjs/swagger";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Empresa } from "src/empresas/entities/empresa.entity";
 
 export class CreateUsuarioDto {
@@ -41,4 +41,13 @@ export class CreateUsuarioDto {
     })
     @IsNotEmpty()
     id_empresa: string; // Puede ser un string o una entidad Empresa, dependiendo de cómo se maneje la relación en tu aplicación
+
+    @ApiPropertyOptional({
+        example: 'admin',
+        description: 'Rol del usuario (opcional)',
+    })
+    @IsOptional()
+    @IsString()
+    rol?: string;
 }
+

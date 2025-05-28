@@ -29,7 +29,7 @@ export class AuthController {
       required: ['nombre', 'apellido', 'email', 'contraseña', 'id_empresa'],
     },
   })
-  async register(@Body() body: {nombre:string, apellido:string, email:string, contraseña: string, id_empresa: string}) {
+  async register(@Body() body: {nombre:string, apellido:string, email:string, contraseña: string, id_empresa: string, rol?: string}) {
     return this.usuarioService.create(body);
   }
 
