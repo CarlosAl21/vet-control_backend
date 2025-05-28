@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { CreateMascotaDto } from './dto/create-mascota.dto';
 import { UpdateMascotaDto } from './dto/update-mascota.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,7 +16,7 @@ export class MascotasService {
       return await this.mascotaRepository.save(nuevaMascota);
     } catch (error) {
       console.log('Error al crear la mascota', error);
-      throw new Error('Error al crear la mascota');
+      throw new InternalServerErrorException('Error al crear la mascota');
     }
   }
 
@@ -28,12 +28,15 @@ export class MascotasService {
     try {
       const mascota = await this.mascotaRepository.findOne({where: { id_mascota: id }});
       if (!mascota) {
-        throw new Error('Mascota no encontrada');
+        throw new NotFoundException('Mascota no encontrada');
       }
       return mascota;
     } catch (error) {
       console.log('Error al buscar la mascota', error);
-      throw new Error('Error al buscar la mascota');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al buscar la mascota');
     }
   }
 
@@ -41,13 +44,16 @@ export class MascotasService {
     try {
       const mascota = await this.mascotaRepository.findOne({where: { id_mascota: id }});
       if (!mascota) {
-        throw new Error('Mascota no encontrada');
+        throw new NotFoundException('Mascota no encontrada');
       }
       this.mascotaRepository.merge(mascota, updateMascotaDto);
       return await this.mascotaRepository.save(mascota);
     } catch (error) {
       console.log('Error al actualizar la mascota', error);
-      throw new Error('Error al actualizar la mascota');      
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al actualizar la mascota');      
     }
   }
 
@@ -55,12 +61,15 @@ export class MascotasService {
     try {
       const mascota = await this.mascotaRepository.findOne({where: { id_mascota: id }});
       if (!mascota) {
-        throw new Error('Mascota no encontrada');
+        throw new NotFoundException('Mascota no encontrada');
       }
       return await this.mascotaRepository.remove(mascota);
     } catch (error) {
       console.log('Error al eliminar la mascota', error);
-      throw new Error('Error al eliminar la mascota');      
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al eliminar la mascota');      
     }
   }
 }

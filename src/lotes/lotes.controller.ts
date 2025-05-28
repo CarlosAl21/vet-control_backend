@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards } from '@nestjs/common';
 import { LotesService } from './lotes.service';
 import { CreateLoteDto } from './dto/create-lote.dto';
 import { UpdateLoteDto } from './dto/update-lote.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @ApiTags('Lotes')
 @Controller('lotes')
@@ -10,6 +12,7 @@ export class LotesController {
   constructor(private readonly lotesService: LotesService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Crear un nuevo lote' })
   @ApiBody({ type: CreateLoteDto })
   @ApiResponse({ status: 201, description: 'Lote creado correctamente.' })
@@ -19,6 +22,7 @@ export class LotesController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Obtener todos los lotes' })
   @ApiResponse({ status: 200, description: 'Lista de lotes.' })
   findAll() {
@@ -26,6 +30,7 @@ export class LotesController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Obtener un lote por ID' })
   @ApiParam({ name: 'id', description: 'ID del lote', example: 'lote123' })
   @ApiResponse({ status: 200, description: 'Lote encontrado.' })
@@ -35,6 +40,7 @@ export class LotesController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Actualizar un lote por ID' })
   @ApiParam({ name: 'id', description: 'ID del lote a actualizar', example: 'lote123' })
   @ApiBody({ type: UpdateLoteDto })
@@ -46,6 +52,7 @@ export class LotesController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Eliminar un lote por ID' })
   @ApiParam({ name: 'id', description: 'ID del lote a eliminar', example: 'lote123' })
   @ApiResponse({ status: 200, description: 'Lote eliminado correctamente.' })

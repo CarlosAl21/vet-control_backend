@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { CreateCategoriaDto } from './dto/create-categoria.dto';
 import { UpdateCategoriaDto } from './dto/update-categoria.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,7 +17,7 @@ export class CategoriasService {
       return await this.categoriaRepository.save(categoria);
     } catch (error) {
       console.error('Error al crear la categoria:', error);
-      throw new Error('Error al crear la categoria');
+      throw new InternalServerErrorException('Error al crear la categoria');
     }
   }
 
@@ -29,12 +29,15 @@ export class CategoriasService {
     try {
       const categoria = await this.categoriaRepository.findOne({ where: { id_categoria: id } });
       if (!categoria) {
-        throw new Error('Categoria no encontrada');
+        throw new NotFoundException('Categoria no encontrada');
       }
       return categoria;
     } catch (error) {
       console.error('Error al encontrar la categoria:', error);
-      throw new Error('Error al encontrar la categoria');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al encontrar la categoria');
     }
   }
 
@@ -42,13 +45,16 @@ export class CategoriasService {
     try {
       const categoria = await this.categoriaRepository.findOne({ where: { id_categoria: id } });
       if (!categoria) {
-        throw new Error('Categoria no encontrada');
+        throw new NotFoundException('Categoria no encontrada');
       }
       this.categoriaRepository.merge(categoria, updateCategoriaDto);
       return await this.categoriaRepository.save(categoria);
     } catch (error) {
       console.error('Error al actualizar la categoria:', error);
-      throw new Error('Error al actualizar la categoria');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al actualizar la categoria');
     }
   }
 
@@ -56,12 +62,15 @@ export class CategoriasService {
     try {
       const categoria = await this.categoriaRepository.findOne({ where: { id_categoria: id } });
       if (!categoria) {
-        throw new Error('Categoria no encontrada');
+        throw new NotFoundException('Categoria no encontrada');
       }
       return await this.categoriaRepository.remove(categoria);
     } catch (error) {
       console.error('Error al eliminar la categoria:', error);
-      throw new Error('Error al eliminar la categoria');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al eliminar la categoria');
     }
   }
 }

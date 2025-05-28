@@ -30,6 +30,7 @@ import { Categoria } from './categorias/entities/categoria.entity';
 import { Producto } from './productos/entities/producto.entity';
 import { Proveedor } from './proveedores/entities/proveedor.entity';
 import { Subcategoria } from './subcategorias/entities/subcategoria.entity';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -61,7 +62,7 @@ import { Subcategoria } from './subcategorias/entities/subcategoria.entity';
       extra: {
         options: `-c search_path=${process.env.DB_SCHEMA}`,
       },
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+      // ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
       synchronize: true,
     }),
     ClientesModule,
@@ -78,6 +79,8 @@ import { Subcategoria } from './subcategorias/entities/subcategoria.entity';
     LotesModule,
     ProveedoresModule,
     EmpresasModule,
+    LotesModule,
+    StripeModule
   ],
   controllers: [AppController],
   providers: [AppService],

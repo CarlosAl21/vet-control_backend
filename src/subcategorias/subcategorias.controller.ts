@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { SubcategoriasService } from './subcategorias.service';
 import { CreateSubcategoriaDto } from './dto/create-subcategoria.dto';
@@ -16,6 +17,8 @@ import {
   ApiResponse,
   ApiParam,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @ApiTags('Subcategorías')
 @Controller('subcategorias')
@@ -23,6 +26,7 @@ export class SubcategoriasController {
   constructor(private readonly subcategoriasService: SubcategoriasService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Crear una nueva subcategoría' })
   @ApiResponse({ status: 201, description: 'Subcategoría creada exitosamente' })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
@@ -31,6 +35,7 @@ export class SubcategoriasController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Obtener todas las subcategorías' })
   @ApiResponse({ status: 200, description: 'Lista de subcategorías obtenida exitosamente' })
   findAll() {
@@ -38,6 +43,7 @@ export class SubcategoriasController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Obtener una subcategoría por ID' })
   @ApiParam({ name: 'id', description: 'ID de la subcategoría' })
   @ApiResponse({ status: 200, description: 'Subcategoría encontrada' })
@@ -47,6 +53,7 @@ export class SubcategoriasController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Actualizar una subcategoría' })
   @ApiParam({ name: 'id', description: 'ID de la subcategoría a actualizar' })
   @ApiResponse({ status: 200, description: 'Subcategoría actualizada exitosamente' })
@@ -59,6 +66,7 @@ export class SubcategoriasController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Eliminar una subcategoría por ID' })
   @ApiParam({ name: 'id', description: 'ID de la subcategoría a eliminar' })
   @ApiResponse({ status: 200, description: 'Subcategoría eliminada correctamente' })

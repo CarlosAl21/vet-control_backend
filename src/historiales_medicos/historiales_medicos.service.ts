@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { CreateHistorialesMedicoDto } from './dto/create-historiales_medico.dto';
 import { UpdateHistorialesMedicoDto } from './dto/update-historiales_medico.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,7 +17,7 @@ export class HistorialesMedicosService {
       return await this.historialesMedicoRepository.save(nuevoHistorial);
     } catch (error) {
       console.error('Error al crear el historial medico:', error);
-      throw new Error('Error al crear el historial medico');
+      throw new InternalServerErrorException('Error al crear el historial medico');
     }
   }
 
@@ -29,12 +29,15 @@ export class HistorialesMedicosService {
     try {
       const historialMedico = await this.historialesMedicoRepository.findOne({ where: { id_historial: id } });
       if (!historialMedico) {
-        throw new Error('Historial medico no encontrado');
+        throw new NotFoundException('Historial medico no encontrado');
       }
       return historialMedico;
     } catch (error) {
       console.error('Error al buscar el historial medico:', error);
-      throw new Error('Error al buscar el historial medico');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al buscar el historial medico');
     }
   }
 
@@ -42,13 +45,16 @@ export class HistorialesMedicosService {
     try {
       const historialMedico = await this.historialesMedicoRepository.findOne({ where: { id_historial: id } });
       if (!historialMedico) {
-        throw new Error('Historial medico no encontrado');
+        throw new NotFoundException('Historial medico no encontrado');
       }
       this.historialesMedicoRepository.merge(historialMedico, updateHistorialesMedicoDto);
       return await this.historialesMedicoRepository.save(historialMedico);
     } catch (error) {
       console.error('Error al actualizar el historial medico:', error);
-      throw new Error('Error al actualizar el historial medico');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al actualizar el historial medico');
     }
   }
 
@@ -56,12 +62,15 @@ export class HistorialesMedicosService {
     try {
       const historialMedico = await this.historialesMedicoRepository.findOne({ where: { id_historial: id } });
       if (!historialMedico) {
-        throw new Error('Historial medico no encontrado');
+        throw new NotFoundException('Historial medico no encontrado');
       }
       return await this.historialesMedicoRepository.remove(historialMedico);
     } catch (error) {
       console.error('Error al eliminar el historial medico:', error);
-      throw new Error('Error al eliminar el historial medico');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al eliminar el historial medico');
     }
   }
 }

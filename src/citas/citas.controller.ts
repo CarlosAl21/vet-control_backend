@@ -13,7 +13,7 @@ export class CitasController {
   constructor(private readonly citasService: CitasService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Crear una nueva cita' })
   @ApiBody({ type: CreateCitaDto, description: 'Datos para crear una cita' })
   @ApiResponse({ status: 201, description: 'Cita creada correctamente.' })
@@ -23,7 +23,7 @@ export class CitasController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Obtener todas las citas' })
   @ApiResponse({ status: 200, description: 'Lista de citas obtenida correctamente.' })
   findAll() {
@@ -31,7 +31,7 @@ export class CitasController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Obtener una cita por ID' })
   @ApiParam({ name: 'id', description: 'ID de la cita', example: 'cita-1234abcd' })
   @ApiResponse({ status: 200, description: 'Cita encontrada.' })
@@ -41,7 +41,7 @@ export class CitasController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Actualizar una cita por ID' })
   @ApiParam({ name: 'id', description: 'ID de la cita a actualizar', example: 'cita-1234abcd' })
   @ApiBody({ type: UpdateCitaDto, description: 'Datos para actualizar la cita' })
@@ -53,7 +53,7 @@ export class CitasController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Eliminar una cita por ID' })
   @ApiParam({ name: 'id', description: 'ID de la cita a eliminar', example: 'cita-1234abcd' })
   @ApiResponse({ status: 200, description: 'Cita eliminada correctamente.' })
