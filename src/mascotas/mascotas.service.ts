@@ -21,12 +21,12 @@ export class MascotasService {
   }
 
   findAll() {
-    return this.mascotaRepository.find();
+    return this.mascotaRepository.find({relations: ['id_cliente']});
   }
 
   async findOne(id: string) {
     try {
-      const mascota = await this.mascotaRepository.findOne({where: { id_mascota: id }});
+      const mascota = await this.mascotaRepository.findOne({where: { id_mascota: id }, relations: ['id_cliente']});
       if (!mascota) {
         throw new NotFoundException('Mascota no encontrada');
       }

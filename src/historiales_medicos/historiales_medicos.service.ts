@@ -22,12 +22,12 @@ export class HistorialesMedicosService {
   }
 
   findAll() {
-    return this.historialesMedicoRepository.find();
+    return this.historialesMedicoRepository.find({relations: ['id_mascota']});
   }
 
   async findOne(id: string) {
     try {
-      const historialMedico = await this.historialesMedicoRepository.findOne({ where: { id_historial: id } });
+      const historialMedico = await this.historialesMedicoRepository.findOne({ where: { id_historial: id }, relations: ['id_mascota'] });
       if (!historialMedico) {
         throw new NotFoundException('Historial medico no encontrado');
       }

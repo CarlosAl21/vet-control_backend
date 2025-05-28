@@ -22,12 +22,13 @@ export class SubcategoriasService {
   }
 
   findAll() {
-    return this.subcategoriaRepository.find();
+    return this.subcategoriaRepository.find({
+      relations: ['id_categoria'],});
   }
 
   async findOne(id: string) {
     try {
-      const subcategoria = await this.subcategoriaRepository.findOne({ where: { id_subcategoria: id } });
+      const subcategoria = await this.subcategoriaRepository.findOne({ where: { id_subcategoria: id }, relations: ['id_categoria']}, );
       if (!subcategoria) {
         throw new NotFoundException('Subcategoria no encontrada');
       }

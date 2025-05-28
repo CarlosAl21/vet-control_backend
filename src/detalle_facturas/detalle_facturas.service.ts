@@ -45,12 +45,12 @@ export class DetalleFacturaService {
   }
 
   findAll() {
-    return this.detalleRepo.find({ relations: ['factura'] });
+    return this.detalleRepo.find({ relations: ['id_factura', 'id_lote'] });
   }
 
   async findOne(id: string) {
     try {
-      const detalle = await this.detalleRepo.findOne({ where: { id_detalle: id }, relations: ['factura'] });
+      const detalle = await this.detalleRepo.findOne({ where: { id_detalle: id }, relations: ['id_factura', 'id_lote'] });
       if (!detalle) {
         throw new NotFoundException('Detalle de factura no encontrado');
       }
