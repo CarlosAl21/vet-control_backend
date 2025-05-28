@@ -36,7 +36,8 @@ export class Mascota {
 
     @ApiProperty({ type: () => Cliente, description: 'Cliente dueño de la mascota' })
     @ManyToOne(() => Cliente, (cliente) => cliente.mascotas)
-    cliente: Cliente;
+    @JoinColumn({name: 'id_cliente'})
+    id_cliente: Cliente;
 
     @ApiProperty({ type: () => [HistorialesMedico], description: 'Historiales médicos de la mascota' })
     @OneToMany(() => HistorialesMedico, (historialMedico) => historialMedico.id_mascota)

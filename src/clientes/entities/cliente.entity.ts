@@ -36,7 +36,7 @@ export class Cliente {
     id_empresa: Empresa;
     
     @ApiProperty({ type: () => [Mascota], description: 'Mascotas asociadas al cliente' })
-    @OneToMany(() => Mascota, (mascota) => mascota.cliente)
+    @OneToMany(() => Mascota, (mascota) => mascota.id_cliente)
     mascotas: Mascota[];
     
     @ApiProperty({ type: () => [Factura], description: 'Facturas asociadas al cliente' })

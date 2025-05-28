@@ -55,7 +55,7 @@ export class FacturasService {
 
       const factura = await this.facturaRepository.findOne({
         where: { id_factura: idFactura },
-        relations: ['cliente'],
+        relations: ['id_cliente', 'id_empresa'],
       });
 
       if (!factura) {

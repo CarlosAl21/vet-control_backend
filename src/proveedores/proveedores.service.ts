@@ -22,12 +22,12 @@ export class ProveedoresService {
   }
 
   findAll() {
-    return this.proveedorRepository.find();
+    return this.proveedorRepository.find({ relations: ['id_empresa'] });
   }
 
   async findOne(id: string) {
     try {
-      const proveedor = await this.proveedorRepository.findOne({ where: { id_proveedor: id } });
+      const proveedor = await this.proveedorRepository.findOne({ where: { id_proveedor: id }, relations: ['id_empresa'] });
       if (!proveedor) {
         throw new NotFoundException('Proveedor no encontrado');
       }

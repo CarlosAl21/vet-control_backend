@@ -33,7 +33,7 @@ export class LotesService {
 
   async findAll(): Promise<Lote[]> {
     try {
-      return await this.loteRepository.find();
+      return await this.loteRepository.find({ relations: ['id_producto', 'id_proveedor', 'id_empresa'] });
     } catch (error) {
       console.error('Error al obtener los lotes:', error);
       throw new InternalServerErrorException('Error al obtener los lotes');
@@ -42,7 +42,7 @@ export class LotesService {
 
   async findOne(id: string): Promise<Lote> {
     try {
-      const lote = await this.loteRepository.findOneBy({ id_lote: id });
+      const lote = await this.loteRepository.findOne({ where: {id_lote: id}, relations: ['id_producto', 'id_proveedor', 'id_empresa'] });
       if (!lote) throw new NotFoundException('Lote no encontrado');
 
       const now = new Date();

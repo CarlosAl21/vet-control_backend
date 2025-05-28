@@ -21,12 +21,12 @@ export class ProductosService {
   }
 
   findAll() {
-    return this.productoRepository.find();
+    return this.productoRepository.find({relations: ['id_subcategoria', 'id_empresa']});
   }
 
   async findOne(id: string) {
     try {
-      const producto = await this.productoRepository.findOne({ where: {id_producto:id} });
+      const producto = await this.productoRepository.findOne({ where: {id_producto:id}, relations: ['id_subcategoria', 'id_empresa'] });
       if (!producto) {
         throw new NotFoundException('Producto no encontrado');
       }

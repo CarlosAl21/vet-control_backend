@@ -22,12 +22,12 @@ export class CitasService {
   }
 
   findAll() {
-    return this.citaRepository.find();
+    return this.citaRepository.find({ relations: ['id_mascota', 'id_usuario'] });
   }
 
   async findOne(id: string) {
     try {
-      const cita = await this.citaRepository.findOne({ where: { id_cita: id } });
+      const cita = await this.citaRepository.findOne({ where: { id_cita: id }, relations: ['id_mascota', 'id_usuario'] });
       if (!cita) {
         throw new NotFoundException('Cita not found');
       }
