@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { FacturasService } from './facturas.service';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
@@ -9,6 +9,8 @@ import {
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @ApiTags('Facturas')
 @Controller('facturas')
@@ -16,6 +18,7 @@ export class FacturasController {
   constructor(private readonly facturasService: FacturasService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Crear una nueva factura' })
   @ApiBody({ type: CreateFacturaDto })
   @ApiResponse({ status: 201, description: 'Factura creada exitosamente.' })
@@ -25,6 +28,7 @@ export class FacturasController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Obtener una factura por su ID' })
   @ApiParam({ name: 'id', description: 'ID de la factura', example: 'uuid-factura-1234' })
   @ApiResponse({ status: 200, description: 'Factura encontrada y retornada.' })
@@ -34,6 +38,7 @@ export class FacturasController {
   }
   
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Actualizar una factura por su ID' })
   @ApiParam({ name: 'id', description: 'ID de la factura a actualizar', example: 'uuid-factura-1234' })
   @ApiBody({ type: UpdateFacturaDto })
@@ -45,6 +50,7 @@ export class FacturasController {
   }
   
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Eliminar una factura por su ID' })
   @ApiParam({ name: 'id', description: 'ID de la factura a eliminar', example: 'uuid-factura-1234' })
   @ApiResponse({ status: 200, description: 'Factura eliminada exitosamente.' })

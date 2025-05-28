@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductosService } from './productos.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
@@ -16,6 +17,8 @@ import {
   ApiResponse,
   ApiParam,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @ApiTags('Productos')
 @Controller('productos')
@@ -23,6 +26,7 @@ export class ProductosController {
   constructor(private readonly productosService: ProductosService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Crear un nuevo producto' })
   @ApiResponse({ status: 201, description: 'Producto creado correctamente' })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
@@ -31,6 +35,7 @@ export class ProductosController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Obtener todos los productos' })
   @ApiResponse({ status: 200, description: 'Lista de productos' })
   findAll() {
@@ -38,6 +43,7 @@ export class ProductosController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Obtener un producto por ID' })
   @ApiParam({ name: 'id', description: 'ID del producto' })
   @ApiResponse({ status: 200, description: 'Producto encontrado' })
@@ -47,6 +53,7 @@ export class ProductosController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Actualizar un producto existente' })
   @ApiParam({ name: 'id', description: 'ID del producto a actualizar' })
   @ApiResponse({ status: 200, description: 'Producto actualizado correctamente' })
@@ -56,6 +63,7 @@ export class ProductosController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Eliminar un producto por ID' })
   @ApiParam({ name: 'id', description: 'ID del producto a eliminar' })
   @ApiResponse({ status: 200, description: 'Producto eliminado correctamente' })
