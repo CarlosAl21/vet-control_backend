@@ -108,21 +108,17 @@ export class FacturasService {
   async findByEmpresa(id_empresa: string) {
     try {
       const empresa = await this.empresaRepository.findOne({
-        where: { id_empresa: id_empresa }})
+        where: { id_empresa }
+      });
       if (!empresa) {
         throw new NotFoundException('Empresa no encontrada');
       }
       return await this.facturaRepository.find({
-        where: { id_empresa: empresa } });
-      
+        where: { id_empresa: empresa }, // Pasar el objeto Empresa completo
+        relations: ['id_cliente', 'id_empresa'],
+      });
     } catch (error) {
       console.error('Error al buscar facturas por empresa:', error);
-      console.error('Detalles del error:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      error,
-    });
       if (error instanceof NotFoundException) {
         throw error;
       }
