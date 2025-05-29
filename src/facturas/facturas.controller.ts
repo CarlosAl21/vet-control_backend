@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { FacturasService } from './facturas.service';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
@@ -36,7 +36,18 @@ export class FacturasController {
   findOne(@Param('id') id: string) {
     return this.facturasService.findOne(id);
   }
-  
+
+  @Get()
+  @UseGuards(JwtAuthGuard,RolesGuard)
+  @ApiOperation({ summary: 'Obtener todas las facturas o filtrar por empresa' })
+  @ApiResponse({ status: 200, description: 'Lista de facturas retornada.' })
+  findAll(@Query('empresa') empresa?: string) {
+    if (empresa) {
+      return this.facturasService.findByEmpresa(empresa);
+    }
+    return this.facturasService.findAll();
+  }
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Actualizar una factura por su ID' })

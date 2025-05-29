@@ -68,4 +68,13 @@ export class FacturasService {
     const factura = await this.findOne(id);
     await this.facturaRepository.remove(factura);
   }
+
+  async findByEmpresa(empresa: string): Promise<Factura[]> {
+    return this.facturaRepository
+      .createQueryBuilder('factura')
+      .leftJoinAndSelect('factura.cliente', 'cliente')
+      .where('cliente.empresa = :empresa', { empresa })
+      .getMany();
+  }
+
 }
