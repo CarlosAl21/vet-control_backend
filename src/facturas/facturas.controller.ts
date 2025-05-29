@@ -36,16 +36,14 @@ export class FacturasController {
   findOne(@Param('id') id: string) {
     return this.facturasService.findOne(id);
   }
+  
 
-  @Get()
+  @Get(':id_empresa')
   @UseGuards(JwtAuthGuard,RolesGuard)
   @ApiOperation({ summary: 'Obtener todas las facturas o filtrar por empresa' })
   @ApiResponse({ status: 200, description: 'Lista de facturas retornada.' })
-  findAll(@Query('empresa') empresa?: string) {
-    if (empresa) {
-      return this.facturasService.findByEmpresa(empresa);
-    }
-    return this.facturasService.findAll();
+  findAll(@Param('id_empresa') id_empresa: string) {
+    return this.facturasService.findByEmpresa(id_empresa);
   }
 
   @Patch(':id')

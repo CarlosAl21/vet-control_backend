@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
 import { Factura } from './entities/factura.entity';
 import { Cliente } from 'src/clientes/entities/cliente.entity';
+import { Empresa } from 'src/empresas/entities/empresa.entity';
 
 @Injectable()
 export class FacturasService {
@@ -14,7 +15,12 @@ export class FacturasService {
 
     @InjectRepository(Cliente)
     private readonly clienteRepository: Repository<Cliente>,
+
+    @InjectRepository(Empresa)
+    private readonly empresaRepository: Repository<Empresa>,
   ) {}
+
+
 
   async create(createFacturaDto: CreateFacturaDto) {
     try {
@@ -99,12 +105,24 @@ export class FacturasService {
     }
   }
 
-  async findByEmpresa(empresa: string): Promise<Factura[]> {
-    return this.facturaRepository
-      .createQueryBuilder('factura')
-      .leftJoinAndSelect('factura.cliente', 'cliente')
-      .where('cliente.empresa = :empresa', { empresa })
-      .getMany();
+  async findByEmpresa(empresa: string) {
+    try {
+      const id_empresa = await this.empresaRepository.findOne({
+        where: { id_empresa: empresa }})
+      if (!id_empresa) {
+        throw new NotFoundException('Empresa no encontrada');
+      }
+      return await this.facturaRepository.find({
+        where: { id_empresa: id_empresa },
+      });
+      
+    } catch (error) {
+      console.error('Error al buscar facturas por empresa:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al buscar facturas por empresa');
+    }
   }
 
 }
