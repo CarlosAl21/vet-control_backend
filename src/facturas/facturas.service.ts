@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CreateFacturaDto } from './dto/create-factura.dto';
@@ -19,8 +24,6 @@ export class FacturasService {
     @InjectRepository(Empresa)
     private readonly empresaRepository: Repository<Empresa>,
   ) {}
-
-
 
   async create(createFacturaDto: CreateFacturaDto) {
     try {
@@ -48,7 +51,9 @@ export class FacturasService {
   }
 
   findAll(): Promise<Factura[]> {
-    return this.facturaRepository.find({ relations: ['cliente', 'id_detalle_factura'] });
+    return this.facturaRepository.find({
+      relations: ['cliente', 'id_detalle_factura'],
+    });
   }
 
   async findOne(id: string): Promise<Factura> {
@@ -56,7 +61,9 @@ export class FacturasService {
       const idFactura = Number(id);
 
       if (isNaN(idFactura)) {
-        throw new BadRequestException('El id_factura debe ser un número válido');
+        throw new BadRequestException(
+          'El id_factura debe ser un número válido',
+        );
       }
 
       const factura = await this.facturaRepository.findOne({
@@ -71,21 +78,30 @@ export class FacturasService {
       return factura;
     } catch (error) {
       console.error('Error al buscar la factura:', error);
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new InternalServerErrorException('Error al buscar la factura');
     }
   }
 
-  async update(id: string, updateFacturaDto: UpdateFacturaDto): Promise<Factura> {
+  async update(
+    id: string,
+    updateFacturaDto: UpdateFacturaDto,
+  ): Promise<Factura> {
     try {
       const factura = await this.findOne(id);
       Object.assign(factura, updateFacturaDto);
       return await this.facturaRepository.save(factura);
     } catch (error) {
       console.error('Error al actualizar la factura:', error);
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new InternalServerErrorException('Error al actualizar la factura');
@@ -98,7 +114,10 @@ export class FacturasService {
       await this.facturaRepository.remove(factura);
     } catch (error) {
       console.error('Error al eliminar la factura:', error);
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new InternalServerErrorException('Error al eliminar la factura');
@@ -108,13 +127,13 @@ export class FacturasService {
   async findByEmpresa(id_empresa: string) {
     try {
       const empresa = await this.empresaRepository.findOne({
-        where: { id_empresa }
+        where: { id_empresa },
       });
       if (!empresa) {
         throw new NotFoundException('Empresa no encontrada');
       }
       return await this.facturaRepository.find({
-        where: { id_empresa: empresa }, // Pasar el objeto Empresa completo
+        where: { id_empresa: { id_empresa: empresa.id_empresa } },
         relations: ['id_cliente', 'id_empresa'],
       });
     } catch (error) {
@@ -122,8 +141,9 @@ export class FacturasService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new InternalServerErrorException('Error al buscar facturas por empresa');
+      throw new InternalServerErrorException(
+        'Error al buscar facturas por empresa',
+      );
     }
   }
-
 }
