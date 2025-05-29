@@ -132,7 +132,17 @@ export class FacturasService {
       if (!empresa) {
         throw new NotFoundException('Empresa no encontrada');
       }
-      return empresa.facturas;
+      return empresa.facturas.map((factura) => {
+        return {
+          id_factura: factura.id_factura,
+          fecha_emision: factura.fecha_emision,
+          total: factura.total,
+          metodo_pago: factura.metodo_pago,
+          id_cliente: factura.id_cliente,
+          id_empresa: factura.id_empresa,
+          detalles: factura.detalles,
+        };
+      });
     } catch (error) {
       console.error('Error al buscar facturas por empresa:', error);
       if (error instanceof NotFoundException) {
