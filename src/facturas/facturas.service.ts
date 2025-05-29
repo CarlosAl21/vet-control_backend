@@ -42,7 +42,7 @@ export class FacturasService {
   }
 
   findAll(): Promise<Factura[]> {
-    return this.facturaRepository.find({ relations: ['cliente'] });
+    return this.facturaRepository.find({ relations: ['cliente', 'id_detalle_factura'] });
   }
 
   async findOne(id: string): Promise<Factura> {
@@ -98,4 +98,13 @@ export class FacturasService {
       throw new InternalServerErrorException('Error al eliminar la factura');
     }
   }
+
+  async findByEmpresa(empresa: string): Promise<Factura[]> {
+    return this.facturaRepository
+      .createQueryBuilder('factura')
+      .leftJoinAndSelect('factura.cliente', 'cliente')
+      .where('cliente.empresa = :empresa', { empresa })
+      .getMany();
+  }
+
 }
