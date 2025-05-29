@@ -117,6 +117,12 @@ export class FacturasService {
       
     } catch (error) {
       console.error('Error al buscar facturas por empresa:', error);
+      console.error('Detalles del error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      error,
+    });
       if (error instanceof NotFoundException) {
         throw error;
       }
