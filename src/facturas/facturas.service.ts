@@ -98,4 +98,13 @@ export class FacturasService {
       throw new InternalServerErrorException('Error al eliminar la factura');
     }
   }
+
+  async findByEmpresa(empresa: string): Promise<Factura[]> {
+    return this.facturaRepository
+      .createQueryBuilder('factura')
+      .leftJoinAndSelect('factura.cliente', 'cliente')
+      .where('cliente.empresa = :empresa', { empresa })
+      .getMany();
+  }
+
 }
