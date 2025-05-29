@@ -38,7 +38,7 @@ export class FacturasController {
   }
   
 
-  @Get(':id_empresa')
+  @Get('empresa/:id_empresa')
   @UseGuards(JwtAuthGuard,RolesGuard)
   @ApiOperation({ summary: 'Obtener todas las facturas o filtrar por empresa' })
   @ApiResponse({ status: 200, description: 'Lista de facturas retornada.' })
