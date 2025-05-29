@@ -132,10 +132,7 @@ export class FacturasService {
       if (!empresa) {
         throw new NotFoundException('Empresa no encontrada');
       }
-      return await this.facturaRepository.find({
-        where: { id_empresa: { id_empresa: empresa.id_empresa } },
-        relations: ['id_cliente', 'id_empresa'],
-      });
+      return empresa.facturas;
     } catch (error) {
       console.error('Error al buscar facturas por empresa:', error);
       if (error instanceof NotFoundException) {
