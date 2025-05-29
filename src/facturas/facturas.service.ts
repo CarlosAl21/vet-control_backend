@@ -42,7 +42,7 @@ export class FacturasService {
   }
 
   findAll(): Promise<Factura[]> {
-    return this.facturaRepository.find({ relations: ['cliente'] });
+    return this.facturaRepository.find({ relations: ['cliente', 'id_detalle_factura'] });
   }
 
   async findOne(id: string): Promise<Factura> {
