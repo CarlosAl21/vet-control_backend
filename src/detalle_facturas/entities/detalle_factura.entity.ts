@@ -23,7 +23,8 @@ export class DetalleFactura {
   @JoinColumn({ name: 'id_factura' })
   id_factura: Factura;
 
-  @ManyToOne(() => Lote, lote => lote.detalles)
+  @ManyToOne(() => Lote, lote => lote.detalles, { nullable: true })
   @JoinColumn({ name: 'id_lote' })
-  id_lote: Lote;
+  id_lote?: Lote;
+
 }

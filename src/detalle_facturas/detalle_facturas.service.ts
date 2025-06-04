@@ -18,17 +18,23 @@ export class DetalleFacturaService {
   ) {}
 
   async create(dto: CreateDetalleFacturaDto) {
-    const lote = await this.lotesRepository.findOne({where: {id_lote: dto.id_lote.id_lote}});
-    if (lote.estado !== 'Disponible') {
-      throw new BadRequestException('El producto no está disponible');
+    if (dto.id_lote?.id_lote) {
+      const lote = await this.lotesRepository.findOne({ where: { id_lote: dto.id_lote.id_lote } });
+      if (!lote || lote.estado !== 'Disponible') {
+        throw new BadRequestException('El producto no está disponible');
+      }
+
+      await this.lotesService.descontarStock(dto.id_lote.id_lote, dto.cantidad);
     }
 
-    await this.lotesService.descontarStock(dto.id_lote.id_lote, dto.cantidad);
-
-    const detalle = this.detalleRepo.create(dto);
+    const detalle = this.detalleRepo.create({
+      ...dto,
+      id_lote: dto.id_lote?.id_lote ? { id_lote: dto.id_lote.id_lote } as Lote : null,
+    });
 
     return this.detalleRepo.save(detalle);
   }
+
 
   findAll() {
     return this.detalleRepo.find({ relations: ['factura'] });
