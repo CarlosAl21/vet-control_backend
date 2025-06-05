@@ -30,8 +30,8 @@ export class DetalleFactura {
   @JoinColumn({ name: 'id_factura' })
   id_factura: Factura;
 
-  @ApiProperty({ type: () => Lote, description: 'Lote asociado al detalle' })
-  @ManyToOne(() => Lote, lote => lote.detalles)
+  @ManyToOne(() => Lote, lote => lote.detalles, { nullable: true })
   @JoinColumn({ name: 'id_lote' })
-  id_lote: Lote;
+  id_lote?: Lote;
+
 }

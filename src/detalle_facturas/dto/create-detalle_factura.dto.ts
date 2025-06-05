@@ -1,8 +1,8 @@
+import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { DeepPartial } from 'typeorm';
-import { IsInt, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { Factura } from 'src/facturas/entities/factura.entity';
 import { Lote } from 'src/lotes/entities/lote.entity';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateDetalleFacturaDto {
   @ApiProperty({
@@ -38,20 +38,18 @@ export class CreateDetalleFacturaDto {
   subtotal: number;
 
   @ApiProperty({
-    description: 'ID parcial o referencia de la factura relacionada',
+    description: 'ID de la factura relacionada',
     example: { id_factura: 123 },
     type: Object,
   })
-  @IsInt()
   @IsNotEmpty()
   id_factura: DeepPartial<Factura>;
 
-  @ApiProperty({
-    description: 'ID parcial o referencia del lote relacionado',
+  @ApiPropertyOptional({
+    description: 'ID del lote relacionado (opcional)',
     example: { id_lote: 456 },
     type: Object,
   })
-  @IsInt()
-  @IsNotEmpty()
-  id_lote: DeepPartial<Lote>;
+  @IsOptional()
+  id_lote?: DeepPartial<Lote>;
 }
