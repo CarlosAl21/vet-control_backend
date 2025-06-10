@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsDateString, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Cliente } from 'src/clientes/entities/cliente.entity';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
 
@@ -41,4 +41,8 @@ export class CreateFacturaDto {
   })
   @IsNotEmpty()
   id_empresa: Empresa;
+
+  @IsOptional()
+  @IsIn(['pagado', 'pendiente', 'anulado'])
+  estado?: 'pagado' | 'pendiente' | 'anulado';
 }

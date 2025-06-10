@@ -22,10 +22,9 @@ import { ApiProperty } from '@nestjs/swagger';
     @Column({ type: 'varchar', length: 50 })
     metodo_pago: string;
   
-    @ApiProperty({ type: () => Cliente, description: 'Cliente asociado a la factura' })
-    @ManyToOne(() => Cliente, (cliente) => cliente.facturas)
+    @ManyToOne(() => Cliente, cliente => cliente.facturas, { eager: true })
     @JoinColumn({ name: 'id_cliente' })
-    id_cliente: Cliente;
+    cliente: Cliente;
 
     @ApiProperty({ type: () => Empresa, description: 'Empresa asociada a la factura' })
     @ManyToOne(() => Empresa, (empresa) => empresa.facturas)
@@ -35,5 +34,7 @@ import { ApiProperty } from '@nestjs/swagger';
     @ApiProperty({ type: () => [DetalleFactura], description: 'Detalles de la factura' })
     @OneToMany(() => DetalleFactura, (detalle) => detalle.id_factura)
     detalles: DetalleFactura[];
-    
+
+    @Column({ type: 'enum', enum: ['pagado', 'pendiente', 'anulado'], default: 'pendiente' })
+    estado: 'pagado' | 'pendiente' | 'anulado';
   }
