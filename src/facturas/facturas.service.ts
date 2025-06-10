@@ -16,22 +16,27 @@ export class FacturasService {
     private readonly clienteRepository: Repository<Cliente>,
   ) {}
 
-  async create(createFacturaDto: CreateFacturaDto) {
-    const cliente = await this.clienteRepository.findOne({
-      where: { id_cliente: createFacturaDto.id_cliente.id_cliente },
-    });
-  
-    if (!cliente) {
-      throw new NotFoundException('Cliente no encontrado');
-    }
-  
-    const nuevaFactura = this.facturaRepository.create({
-      ...createFacturaDto,
-      id_cliente: cliente,
-    });
-  
-    return this.facturaRepository.save(nuevaFactura);
+async create(createFacturaDto: CreateFacturaDto) {
+  const cliente = await this.clienteRepository.findOne({
+    where: { id_cliente: createFacturaDto.id_cliente.id_cliente },
+  });
+
+  if (!cliente) {
+    throw new NotFoundException('Cliente no encontrado');
   }
+
+  // Usa el valor en minúsculas 'pendiente' para estado por defecto
+  const estado = createFacturaDto.estado || 'pendiente';
+
+  const nuevaFactura = this.facturaRepository.create({
+    ...createFacturaDto,
+    cliente, // Aquí va cliente, no id_cliente
+    estado,
+  });
+
+  return this.facturaRepository.save(nuevaFactura);
+}
+
   
 
   findAll(): Promise<Factura[]> {
@@ -60,6 +65,11 @@ export class FacturasService {
   async update(id: string, updateFacturaDto: UpdateFacturaDto): Promise<Factura> {
     const factura = await this.findOne(id);
 
+    // Si quieres validar estado, puedes hacer un control aquí antes de asignar
+    if (updateFacturaDto.estado) {
+      factura.estado = updateFacturaDto.estado;
+    }
+
     Object.assign(factura, updateFacturaDto);
     return this.facturaRepository.save(factura);
   }
@@ -76,5 +86,4 @@ export class FacturasService {
       .where('cliente.empresa = :empresa', { empresa })
       .getMany();
   }
-
 }

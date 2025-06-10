@@ -17,9 +17,9 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColum
     @Column({ type: 'varchar', length: 50 })
     metodo_pago: string;
   
-    @ManyToOne(() => Cliente, (cliente) => cliente.facturas)
+    @ManyToOne(() => Cliente, cliente => cliente.facturas, { eager: true })
     @JoinColumn({ name: 'id_cliente' })
-    id_cliente: Cliente;
+    cliente: Cliente;
 
     @ManyToOne(() => Empresa, (empresa) => empresa.facturas)
     @JoinColumn({ name: 'id_empresa' })
@@ -27,6 +27,8 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColum
 
     @OneToMany(() => DetalleFactura, (detalle) => detalle.id_factura)
     detalles: DetalleFactura[];
-    
+
+    @Column({ type: 'enum', enum: ['pagado', 'pendiente', 'anulado'], default: 'pendiente' })
+    estado: 'pagado' | 'pendiente' | 'anulado';
   }
   

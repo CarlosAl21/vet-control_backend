@@ -30,8 +30,6 @@ export class Cliente {
     @OneToMany(() => Mascota, (mascota) => mascota.cliente)
     mascotas: Mascota[];
     
-    @OneToMany(() => Factura, (factura) => factura.id_cliente)
+    @OneToMany(() => Factura, factura => factura.cliente)
     facturas: Factura[];
-
-
 }
