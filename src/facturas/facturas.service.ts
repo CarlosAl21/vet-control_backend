@@ -25,30 +25,30 @@ export class FacturasService {
     private readonly empresaRepository: Repository<Empresa>,
   ) {}
 
-  async create(createFacturaDto: CreateFacturaDto) {
-    try {
-      const cliente = await this.clienteRepository.findOne({
-        where: { id_cliente: createFacturaDto.id_cliente.id_cliente },
-      });
 
-      if (!cliente) {
-        throw new NotFoundException('Cliente no encontrado');
-      }
 
-      const nuevaFactura = this.facturaRepository.create({
-        ...createFacturaDto,
-        id_cliente: cliente,
-      });
+async create(createFacturaDto: CreateFacturaDto) {
+  const cliente = await this.clienteRepository.findOne({
+    where: { id_cliente: createFacturaDto.id_cliente.id_cliente },
+  });
 
-      return await this.facturaRepository.save(nuevaFactura);
-    } catch (error) {
-      console.error('Error al crear la factura:', error);
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Error al crear la factura');
-    }
+  if (!cliente) {
+    throw new NotFoundException('Cliente no encontrado');
   }
+
+  // Usa el valor en minúsculas 'pendiente' para estado por defecto
+  const estado = createFacturaDto.estado || 'pendiente';
+
+  const nuevaFactura = this.facturaRepository.create({
+    ...createFacturaDto,
+    cliente, // Aquí va cliente, no id_cliente
+    estado,
+  });
+
+  return this.facturaRepository.save(nuevaFactura);
+}
+
+  
 
   findAll(): Promise<Factura[]> {
     return this.facturaRepository.find({
@@ -88,71 +88,28 @@ export class FacturasService {
     }
   }
 
-  async update(
-    id: string,
-    updateFacturaDto: UpdateFacturaDto,
-  ): Promise<Factura> {
-    try {
-      const factura = await this.findOne(id);
-      Object.assign(factura, updateFacturaDto);
-      return await this.facturaRepository.save(factura);
-    } catch (error) {
-      console.error('Error al actualizar la factura:', error);
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Error al actualizar la factura');
+  async update(id: string, updateFacturaDto: UpdateFacturaDto): Promise<Factura> {
+    const factura = await this.findOne(id);
+
+    // Si quieres validar estado, puedes hacer un control aquí antes de asignar
+    if (updateFacturaDto.estado) {
+      factura.estado = updateFacturaDto.estado;
     }
+
+    Object.assign(factura, updateFacturaDto);
+    return this.facturaRepository.save(factura);
   }
 
   async remove(id: string): Promise<void> {
-    try {
-      const factura = await this.findOne(id);
-      await this.facturaRepository.remove(factura);
-    } catch (error) {
-      console.error('Error al eliminar la factura:', error);
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Error al eliminar la factura');
-    }
+    const factura = await this.findOne(id);
+    await this.facturaRepository.remove(factura);
   }
 
-  async findByEmpresa(id_empresa: string) {
-    try {
-      const empresa = await this.empresaRepository.findOne({
-        where: { id_empresa },
-        relations: ['facturas', 'facturas.id_cliente', 'facturas.detalles'],
-      });
-      if (!empresa) {
-        throw new NotFoundException('Empresa no encontrada');
-      }
-      if (!empresa.facturas || empresa.facturas.length === 0) {
-        return [];
-      }
-      return empresa.facturas.map((factura) => ({
-        id_factura: factura.id_factura,
-        fecha_emision: factura.fecha_emision,
-        total: factura.total,
-        metodo_pago: factura.metodo_pago,
-        id_cliente: factura.id_cliente,
-        id_empresa: factura.id_empresa,
-        detalles: factura.detalles,
-      }));
-    } catch (error) {
-      console.error('Error al buscar facturas por empresa:', error);
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        'Error al buscar facturas por empresa',
-      );
-    }
+  async findByEmpresa(empresa: string): Promise<Factura[]> {
+    return this.facturaRepository
+      .createQueryBuilder('factura')
+      .leftJoinAndSelect('factura.cliente', 'cliente')
+      .where('cliente.empresa = :empresa', { empresa })
+      .getMany();
   }
 }
