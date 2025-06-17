@@ -1,6 +1,7 @@
 import { Mascota } from "src/mascotas/entities/mascota.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ApiProperty } from '@nestjs/swagger';
+import { FotosHistorial } from "src/fotos_historial/entities/fotos_historial.entity";
 
 @Entity()
 export class HistorialesMedico {
@@ -28,4 +29,7 @@ export class HistorialesMedico {
     @ManyToOne(() => Mascota, (mascota) => mascota.historiales_medicos)
     @JoinColumn({ name: 'id_mascota' })
     id_mascota: Mascota;
+
+    @OneToMany(() => FotosHistorial, (fotosHistorial) => fotosHistorial.historial)
+    fotos_historial: FotosHistorial[];
 }

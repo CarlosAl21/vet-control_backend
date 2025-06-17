@@ -4,9 +4,10 @@ import { HistorialesMedicosController } from './historiales_medicos.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Mascota } from 'src/mascotas/entities/mascota.entity';
 import { HistorialesMedico } from './entities/historiales_medico.entity';
+import { FotosHistorial } from 'src/fotos_historial/entities/fotos_historial.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([HistorialesMedico, Mascota])],
+  imports: [TypeOrmModule.forFeature([HistorialesMedico, Mascota, FotosHistorial])],
   controllers: [HistorialesMedicosController],
   providers: [HistorialesMedicosService],
 })

@@ -31,6 +31,9 @@ import { Producto } from './productos/entities/producto.entity';
 import { Proveedor } from './proveedores/entities/proveedor.entity';
 import { Subcategoria } from './subcategorias/entities/subcategoria.entity';
 import { StripeModule } from './stripe/stripe.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { MailModule } from './mail/mail.module';
+import { FotosHistorialModule } from './fotos_historial/fotos_historial.module';
 
 @Module({
   imports: [
@@ -80,7 +83,10 @@ import { StripeModule } from './stripe/stripe.module';
     ProveedoresModule,
     EmpresasModule,
     LotesModule,
-    StripeModule
+    StripeModule,
+    CloudinaryModule,
+    MailModule,
+    FotosHistorialModule,
   ],
   controllers: [AppController],
   providers: [AppService],
