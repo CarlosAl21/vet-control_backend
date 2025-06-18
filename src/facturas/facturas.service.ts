@@ -108,11 +108,19 @@ async create(createFacturaDto: CreateFacturaDto) {
     await this.facturaRepository.remove(factura);
   }
 
-  async findByEmpresa(empresa: string): Promise<Factura[]> {
-    return this.facturaRepository
-      .createQueryBuilder('factura')
-      .leftJoinAndSelect('factura.cliente', 'cliente')
-      .where('cliente.id_empresa = :empresa', { empresa })
-      .getMany();
+  async findByEmpresa(empresa: string) {
+    const empresaEntity = await this.empresaRepository.findOne({
+      where: { id_empresa: empresa },
+    });
+
+    if (!empresaEntity) {
+      throw new NotFoundException('Empresa no encontrada');
+    }
+
+    return this.facturaRepository.find({
+      where: { id_empresa: empresaEntity },
+      relations: ['cliente', 'id_detalle_factura'],
+    });
+    
   }
 }
