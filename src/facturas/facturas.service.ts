@@ -112,7 +112,7 @@ async create(createFacturaDto: CreateFacturaDto) {
     return this.facturaRepository
       .createQueryBuilder('factura')
       .leftJoinAndSelect('factura.cliente', 'cliente')
-      .where('cliente.empresa = :empresa', { empresa })
+      .where('cliente.id_empresa = :empresa', { empresa })
       .getMany();
   }
 }
