@@ -11,6 +11,7 @@ import { UpdateFacturaDto } from './dto/update-factura.dto';
 import { Factura } from './entities/factura.entity';
 import { Cliente } from 'src/clientes/entities/cliente.entity';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
+import e from 'express';
 
 @Injectable()
 export class FacturasService {
@@ -111,20 +112,8 @@ async create(createFacturaDto: CreateFacturaDto) {
   async findByEmpresa(id_empresa: string) {
     const empresaEntity = await this.empresaRepository.findOne({
       where: { id_empresa },
+      relations: ['facturas'], // Asegúrate de que la relación esté definida en la entidad Empresa
     });
-
-    if (!empresaEntity) {
-      throw new NotFoundException('Empresa no encontrada');
-    }
-
-    const facturas = await this.facturaRepository.find({
-      where: { id_empresa: { id_empresa } }, // Filtra por el id_empresa (uuid)
-      relations: ['cliente', 'id_empresa', 'detalles'],
-    });
-
-    if (facturas.length === 0) {
-      throw new NotFoundException('No se encontraron facturas para esta empresa');
-    }
-    return facturas;
+    return empresaEntity.facturas; // Retorna las facturas asociadas a la empresa
   }
 }
