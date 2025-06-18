@@ -119,7 +119,7 @@ async create(createFacturaDto: CreateFacturaDto) {
 
     return this.facturaRepository.find({
       where: { id_empresa: empresaEntity },
-      relations: ['cliente', 'id_detalle_factura'],
+      relations: ['cliente', 'detalles'],
     });
     
   }
