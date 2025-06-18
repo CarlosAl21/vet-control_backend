@@ -68,7 +68,7 @@ async create(createFacturaDto: CreateFacturaDto) {
 
       const factura = await this.facturaRepository.findOne({
         where: { id_factura: idFactura },
-        relations: ['id_cliente', 'id_empresa'],
+        relations: ['cliente', 'id_empresa'],
       });
 
       if (!factura) {
@@ -91,7 +91,7 @@ async create(createFacturaDto: CreateFacturaDto) {
   async update(id: number, updateFacturaDto: UpdateFacturaDto): Promise<Factura> {
     const factura = await this.facturaRepository.findOne({
       where: { id_factura: id },
-      relations: ['id_cliente', 'id_empresa'],
+      relations: ['cliente', 'id_empresa'],
     });
 
     // Si quieres validar estado, puedes hacer un control aquí antes de asignar
