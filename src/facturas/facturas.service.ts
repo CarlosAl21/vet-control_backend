@@ -88,16 +88,19 @@ async create(createFacturaDto: CreateFacturaDto) {
     }
   }
 
-  async update(id: string, updateFacturaDto: UpdateFacturaDto): Promise<Factura> {
-    const factura = await this.findOne(id);
+  async update(id: number, updateFacturaDto: UpdateFacturaDto): Promise<Factura> {
+    const factura = await this.facturaRepository.findOne({
+      where: { id_factura: id },
+      relations: ['id_cliente', 'id_empresa'],
+    });
 
     // Si quieres validar estado, puedes hacer un control aquí antes de asignar
     if (updateFacturaDto.estado) {
       factura.estado = updateFacturaDto.estado;
     }
 
-    Object.assign(factura, updateFacturaDto);
-    return this.facturaRepository.save(factura);
+    const facturaUpdate = this.facturaRepository.merge(factura, updateFacturaDto);
+    return this.facturaRepository.save(facturaUpdate);
   }
 
   async remove(id: string): Promise<void> {
