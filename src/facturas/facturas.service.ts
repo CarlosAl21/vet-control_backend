@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CreateFacturaDto } from './dto/create-factura.dto';
@@ -6,6 +11,7 @@ import { UpdateFacturaDto } from './dto/update-factura.dto';
 import { Factura } from './entities/factura.entity';
 import { Cliente } from 'src/clientes/entities/cliente.entity';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
+import e from 'express';
 
 @Injectable()
 export class FacturasService {
@@ -46,7 +52,9 @@ async create(createFacturaDto: CreateFacturaDto) {
   
 
   findAll(): Promise<Factura[]> {
-    return this.facturaRepository.find({ relations: ['cliente', 'id_detalle_factura'] });
+    return this.facturaRepository.find({
+      relations: ['cliente', 'id_detalle_factura'],
+    });
   }
 
   async findOne(id: string): Promise<Factura> {
@@ -54,12 +62,14 @@ async create(createFacturaDto: CreateFacturaDto) {
       const idFactura = Number(id);
 
       if (isNaN(idFactura)) {
-        throw new BadRequestException('El id_factura debe ser un número válido');
+        throw new BadRequestException(
+          'El id_factura debe ser un número válido',
+        );
       }
 
       const factura = await this.facturaRepository.findOne({
         where: { id_factura: idFactura },
-        relations: ['id_cliente', 'id_empresa'],
+        relations: ['cliente', 'id_empresa'],
       });
 
       if (!factura) {
@@ -69,23 +79,29 @@ async create(createFacturaDto: CreateFacturaDto) {
       return factura;
     } catch (error) {
       console.error('Error al buscar la factura:', error);
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new InternalServerErrorException('Error al buscar la factura');
     }
   }
 
-  async update(id: string, updateFacturaDto: UpdateFacturaDto): Promise<Factura> {
-    const factura = await this.findOne(id);
+  async update(id: number, updateFacturaDto: UpdateFacturaDto): Promise<Factura> {
+    const factura = await this.facturaRepository.findOne({
+      where: { id_factura: id },
+      relations: ['cliente', 'id_empresa'],
+    });
 
     // Si quieres validar estado, puedes hacer un control aquí antes de asignar
     if (updateFacturaDto.estado) {
       factura.estado = updateFacturaDto.estado;
     }
 
-    Object.assign(factura, updateFacturaDto);
-    return this.facturaRepository.save(factura);
+    const facturaUpdate = this.facturaRepository.merge(factura, updateFacturaDto);
+    return this.facturaRepository.save(facturaUpdate);
   }
 
   async remove(id: string): Promise<void> {
@@ -93,11 +109,11 @@ async create(createFacturaDto: CreateFacturaDto) {
     await this.facturaRepository.remove(factura);
   }
 
-  async findByEmpresa(empresa: string): Promise<Factura[]> {
-    return this.facturaRepository
-      .createQueryBuilder('factura')
-      .leftJoinAndSelect('factura.cliente', 'cliente')
-      .where('cliente.empresa = :empresa', { empresa })
-      .getMany();
+  async findByEmpresa(id_empresa: string) {
+    const empresaEntity = await this.empresaRepository.findOne({
+      where: { id_empresa },
+      relations: ['facturas'], // Asegúrate de que la relación esté definida en la entidad Empresa
+    });
+    return empresaEntity.facturas; // Retorna las facturas asociadas a la empresa
   }
 }

@@ -34,7 +34,7 @@ export class CreateProductoDto {
         description: 'ID de la subcategoría asociada al producto',
     })
     @IsNotEmpty()
-    subcategoriaId: DeepPartial<Subcategoria>;
+    id_subcategoria: DeepPartial<Subcategoria>;
 
     @ApiProperty({
         example: { id_empresa: '661faed5b2c7a3f8a41c9a1b' },

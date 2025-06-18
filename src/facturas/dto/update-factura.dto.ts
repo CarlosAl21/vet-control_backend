@@ -9,5 +9,5 @@ export class UpdateFacturaDto extends PartialType(CreateFacturaDto) {
     })
     @IsString()
     @IsNotEmpty()
-    id_factura: string;
+    id_factura: number;
 }

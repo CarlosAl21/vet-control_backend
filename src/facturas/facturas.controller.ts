@@ -54,7 +54,7 @@ export class FacturasController {
   @ApiResponse({ status: 200, description: 'Factura actualizada exitosamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos para actualizar la factura.' })
   @ApiResponse({ status: 404, description: 'Factura no encontrada.' })
-  update(@Param('id') id: string, @Body() updateFacturaDto: UpdateFacturaDto) {
+  update(@Param('id') id: number, @Body() updateFacturaDto: UpdateFacturaDto) {
     return this.facturasService.update(id, updateFacturaDto);
   }
   
