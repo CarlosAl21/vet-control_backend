@@ -12,6 +12,7 @@ import { Factura } from './entities/factura.entity';
 import { Cliente } from 'src/clientes/entities/cliente.entity';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
 import e from 'express';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class FacturasService {
@@ -24,32 +25,30 @@ export class FacturasService {
 
     @InjectRepository(Empresa)
     private readonly empresaRepository: Repository<Empresa>,
+
+    private readonly mailService: MailService, // Inyecta el servicio de correo
   ) {}
 
+  async create(createFacturaDto: CreateFacturaDto) {
+    const cliente = await this.clienteRepository.findOne({
+      where: { id_cliente: createFacturaDto.id_cliente.id_cliente },
+    });
 
+    if (!cliente) {
+      throw new NotFoundException('Cliente no encontrado');
+    }
 
-async create(createFacturaDto: CreateFacturaDto) {
-  const cliente = await this.clienteRepository.findOne({
-    where: { id_cliente: createFacturaDto.id_cliente.id_cliente },
-  });
+    // Usa el valor en minúsculas 'pendiente' para estado por defecto
+    const estado = createFacturaDto.estado || 'pendiente';
 
-  if (!cliente) {
-    throw new NotFoundException('Cliente no encontrado');
+    const nuevaFactura = this.facturaRepository.create({
+      ...createFacturaDto,
+      cliente, // Aquí va cliente, no id_cliente
+      estado,
+    });
+
+    return this.facturaRepository.save(nuevaFactura);
   }
-
-  // Usa el valor en minúsculas 'pendiente' para estado por defecto
-  const estado = createFacturaDto.estado || 'pendiente';
-
-  const nuevaFactura = this.facturaRepository.create({
-    ...createFacturaDto,
-    cliente, // Aquí va cliente, no id_cliente
-    estado,
-  });
-
-  return this.facturaRepository.save(nuevaFactura);
-}
-
-  
 
   findAll(): Promise<Factura[]> {
     return this.facturaRepository.find({
@@ -95,13 +94,26 @@ async create(createFacturaDto: CreateFacturaDto) {
       relations: ['cliente', 'id_empresa'],
     });
 
-    // Si quieres validar estado, puedes hacer un control aquí antes de asignar
     if (updateFacturaDto.estado) {
       factura.estado = updateFacturaDto.estado;
     }
 
     const facturaUpdate = this.facturaRepository.merge(factura, updateFacturaDto);
-    return this.facturaRepository.save(facturaUpdate);
+    const facturaGuardada = await this.facturaRepository.save(facturaUpdate);
+
+    // Si el estado es "pagado", enviar correo de confirmación al cliente
+    if (facturaGuardada.estado === 'pagado' && facturaGuardada.cliente?.email) {
+      await this.mailService.sendPaymentConfirmation(
+        facturaGuardada.cliente.email,
+        {
+          name: `${facturaGuardada.cliente.nombre} ${facturaGuardada.cliente.apellido}`,
+          amount: facturaGuardada.total,
+          paymentId: facturaGuardada.id_factura,
+        }
+      );
+    }
+
+    return facturaGuardada;
   }
 
   async remove(id: string): Promise<void> {
