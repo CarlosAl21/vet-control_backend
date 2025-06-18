@@ -116,11 +116,13 @@ async create(createFacturaDto: CreateFacturaDto) {
     if (!empresaEntity) {
       throw new NotFoundException('Empresa no encontrada');
     }
-
-    return this.facturaRepository.find({
+    const facturas = await this.facturaRepository.find({
       where: { id_empresa: empresaEntity },
-      relations: ['cliente', 'detalles'],
-    });
-    
+      relations: ['cliente', 'id_empresa']});
+
+    if (facturas.length === 0) {
+      throw new NotFoundException('No se encontraron facturas para esta empresa');
+    }
+    return facturas;    
   }
 }
