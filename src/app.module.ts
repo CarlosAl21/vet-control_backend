@@ -34,6 +34,8 @@ import { StripeModule } from './stripe/stripe.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { MailModule } from './mail/mail.module';
 import { FotosHistorialModule } from './fotos_historial/fotos_historial.module';
+import { DetalleHistorialModule } from './detalle_historial/detalle_historial.module';
+import { DetalleHistorial } from './detalle_historial/entities/detalle_historial.entity';
 
 @Module({
   imports: [
@@ -61,6 +63,7 @@ import { FotosHistorialModule } from './fotos_historial/fotos_historial.module';
         Proveedor,
         Subcategoria,
         Usuario,
+        DetalleHistorial,
       ],
       extra: {
         options: `-c search_path=${process.env.DB_SCHEMA}`,
@@ -87,6 +90,7 @@ import { FotosHistorialModule } from './fotos_historial/fotos_historial.module';
     CloudinaryModule,
     MailModule,
     FotosHistorialModule,
+    DetalleHistorialModule,
   ],
   controllers: [AppController],
   providers: [AppService],
