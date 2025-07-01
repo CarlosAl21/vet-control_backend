@@ -1,6 +1,7 @@
 import { IsNotEmpty, IsString } from "class-validator";
 import { Mascota } from "src/mascotas/entities/mascota.entity";
 import { ApiProperty } from '@nestjs/swagger';
+import { DeepPartial } from "typeorm";
 
 export class CreateHistorialesMedicoDto {
     @ApiProperty({
@@ -20,26 +21,11 @@ export class CreateHistorialesMedicoDto {
     diagnostico: string;
 
     @ApiProperty({
-      description: 'Tratamiento prescrito',
-      example: 'Antibióticos por 7 días',
-    })
-    @IsString()
-    @IsNotEmpty()
-    tratamiento: string;
-
-    @ApiProperty({
-      description: 'Notas adicionales del veterinario',
-      example: 'Se recomienda reposo y seguimiento en 3 días',
-      required: false,
-    })
-    @IsString()
-    notas: string;
-
-    @ApiProperty({
       description: 'Mascota asociada al historial médico (objeto Mascota o ID)',
       type: () => Mascota,
       example: { id_mascota: 'abc123', nombre: 'Firulais' },
     })
     @IsNotEmpty()
-    id_mascota: Mascota;
+    id_mascota: DeepPartial<Mascota>;
+    
 }
