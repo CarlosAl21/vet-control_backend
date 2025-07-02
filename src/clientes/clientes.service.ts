@@ -1,13 +1,26 @@
-import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cliente } from './entities/cliente.entity';
 import { Repository } from 'typeorm';
+import { Usuario } from 'src/usuarios/entities/usuario.entity';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class ClientesService {
-  constructor(@InjectRepository(Cliente) private clienteRepository: Repository<Cliente>) {
+  constructor(
+    @InjectRepository(Cliente)
+    private clienteRepository: Repository<Cliente>,
+    @InjectRepository(Usuario)
+    private usuarioRepository: Repository<Usuario>,
+    private readonly mailService: MailService,
+  ) {
     console.log('Servicios del cliente inicializados');
   }
 
@@ -24,16 +37,85 @@ export class ClientesService {
     return telefonoRegex.test(telefono);
   }
 
+  async validateUserExists(email: string) {
+    try {
+      this.validarEmail(email);
+      const usuario = await this.usuarioRepository.findOne({
+        where: { email: email },
+      });
+      if (usuario) {
+        return usuario;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error al validar el usuario:', error);
+      throw new InternalServerErrorException(
+        'Error al validar el usuario' + error.message,
+      );
+    }
+  }
+
+  private generarContrasenaTemporal(length = 10): string {
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < length; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  }
+
   async create(createClienteDto: CreateClienteDto) {
     try {
+      const usuarioExistente = await this.validateUserExists(
+        createClienteDto.email,
+      );
+      if (!usuarioExistente) {
+        if (!this.validarEmail(createClienteDto.email)) {
+          throw new BadRequestException('El email no es válido');
+        }
+        if (!this.validarTelefonoEcuador(createClienteDto.telefono)) {
+          throw new BadRequestException(
+            'El teléfono no es válido para Ecuador',
+          );
+        }
+
+        const tempPassword = this.generarContrasenaTemporal();
+        const nuevoUsuario = this.usuarioRepository.create({
+          nombre: createClienteDto.nombre,
+          apellido: createClienteDto.apellido,
+          email: createClienteDto.email,
+          telefono: createClienteDto.telefono,
+          direccion: createClienteDto.direccion,
+          contraseña: tempPassword,
+        });
+
+        const usuarioSave = await this.usuarioRepository.save(nuevoUsuario);
+        // Enviar correo con la contraseña temporal
+        await this.mailService.sendWelcomeWithTempPassword(
+          usuarioSave.email,
+          {
+            nombre: usuarioSave.nombre,
+            contraseña: tempPassword,
+          }
+        );
+
+        createClienteDto.id_usuario = usuarioSave;
+        const nuevoCliente = this.clienteRepository.create(createClienteDto);
+        const clienteSave = await this.clienteRepository.save(nuevoCliente);
+        return clienteSave;
+      }
       if (!this.validarEmail(createClienteDto.email)) {
         throw new BadRequestException('El email no es válido');
       }
       if (!this.validarTelefonoEcuador(createClienteDto.telefono)) {
         throw new BadRequestException('El teléfono no es válido para Ecuador');
       }
+
+      createClienteDto.id_usuario = usuarioExistente;
       const nuevoCliente = this.clienteRepository.create(createClienteDto);
-      return await this.clienteRepository.save(nuevoCliente); 
+      const clienteSave = await this.clienteRepository.save(nuevoCliente);
+      return clienteSave;
     } catch (error) {
       console.error('Error al crear el cliente:', error);
       if (error instanceof BadRequestException) {
@@ -49,7 +131,10 @@ export class ClientesService {
 
   async findOne(id: string) {
     try {
-      const cliente = await this.clienteRepository.findOne({ where: {id_cliente: id}, relations: ['id_empresa'] });
+      const cliente = await this.clienteRepository.findOne({
+        where: { id_cliente: id },
+        relations: ['id_empresa'],
+      });
       if (!cliente) {
         throw new NotFoundException('Cliente no encontrado');
       }
@@ -65,21 +150,32 @@ export class ClientesService {
 
   async update(id: string, updateClienteDto: UpdateClienteDto) {
     try {
-      const cliente = await this.clienteRepository.findOneBy({ id_cliente: id });
+      const cliente = await this.clienteRepository.findOneBy({
+        id_cliente: id,
+      });
       if (!cliente) {
         throw new NotFoundException('Cliente no encontrado');
       }
-      if (updateClienteDto.email && !this.validarEmail(updateClienteDto.email)) {
+      if (
+        updateClienteDto.email &&
+        !this.validarEmail(updateClienteDto.email)
+      ) {
         throw new BadRequestException('El email no es válido');
       }
-      if (updateClienteDto.telefono && !this.validarTelefonoEcuador(updateClienteDto.telefono)) {
+      if (
+        updateClienteDto.telefono &&
+        !this.validarTelefonoEcuador(updateClienteDto.telefono)
+      ) {
         throw new BadRequestException('El teléfono no es válido para Ecuador');
       }
       this.clienteRepository.merge(cliente, updateClienteDto);
       return await this.clienteRepository.save(cliente);
     } catch (error) {
       console.error('Error al actualizar el cliente:', error);
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new InternalServerErrorException('Error al actualizar el cliente');
@@ -88,7 +184,9 @@ export class ClientesService {
 
   async remove(id: string) {
     try {
-      const cliente = await this.clienteRepository.findOneBy({ id_cliente: id });
+      const cliente = await this.clienteRepository.findOneBy({
+        id_cliente: id,
+      });
       if (!cliente) {
         throw new NotFoundException('Cliente no encontrado');
       }
@@ -99,6 +197,27 @@ export class ClientesService {
         throw error;
       }
       throw new InternalServerErrorException('Error al eliminar el cliente');
+    }
+  }
+
+  async obtenerMascotasPorCliente(id: string) {
+    try {
+      const cliente = await this.clienteRepository.findOne({
+        where: { id_cliente: id },
+        relations: ['id_usuario', 'mascotas'],
+      });
+      if (!cliente) {
+        throw new NotFoundException('Cliente no encontrado');
+      }
+      return cliente.id_usuario.mascotas;
+    } catch (error) {
+      console.error('Error al obtener las mascotas del cliente:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'Error al obtener las mascotas del cliente',
+      );
     }
   }
 }

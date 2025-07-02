@@ -1,6 +1,7 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { DeepPartial } from 'typeorm';
+import { IsNotEmpty, IsString, IsNumber, IsBoolean } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { Cliente } from "src/clientes/entities/cliente.entity";
+import { Usuario } from 'src/usuarios/entities/usuario.entity';
 
 export class CreateMascotaDto {
     @ApiProperty({
@@ -20,7 +21,7 @@ export class CreateMascotaDto {
     especie: string;
 
     @ApiProperty({
-        example: 'Labrador Retriever',
+        example: 'Labrador',
         description: 'Raza de la mascota',
     })
     @IsString()
@@ -44,7 +45,7 @@ export class CreateMascotaDto {
     fecha_nacimiento: string;
 
     @ApiProperty({
-        example: 'Marrón',
+        example: 'Negro',
         description: 'Color de la mascota',
     })
     @IsString()
@@ -52,9 +53,41 @@ export class CreateMascotaDto {
     color: string;
 
     @ApiProperty({
-        example: { id_cliente: '62f4c7b3d48f7c1b9a9d1234' },
-        description: 'Cliente al que pertenece la mascota',
+        example: 12.5,
+        description: 'Peso actual de la mascota en kilogramos',
+    })
+    @IsNumber()
+    @IsNotEmpty()
+    peso_actual: number;
+
+    @ApiProperty({
+        example: 'Mediano',
+        description: 'Tamaño de la mascota',
+    })
+    @IsString()
+    @IsNotEmpty()
+    tamano: string;
+
+    @ApiProperty({
+        example: '950098765432100',
+        description: 'Numero de microchip',
+    })
+    @IsString()
+    @IsNotEmpty()
+    num_microchip_collar: string;
+
+    @ApiProperty({
+        example: true,
+        description: 'Si la mascota está esterilizada o no',
+    })
+    @IsBoolean()
+    @IsNotEmpty()
+    esterilizado: boolean;
+
+    @ApiProperty({
+        example: { id_usuaro: '62f4c7b3d48f7c1b9a9d1234' },
+        description: 'Usuario al que pertenece la mascota',
     })
     @IsNotEmpty()
-    id_cliente: Cliente;
+    id_usuario: DeepPartial<Usuario>;
 }

@@ -25,6 +25,14 @@ export class UsuariosService {
     return emailRegex.test(email);
   }
 
+  private validarTelefonoEcuador(telefono: string): boolean {
+    // Formato para Ecuador:
+    // Móviles: empiezan con 09 y tienen 10 dígitos
+    // Convencionales: empiezan con 02, 03, 04, etc. y tienen también 9 dígitos
+    const telefonoRegex = /^(09\d{8}|0[2-7]\d{7})$/;
+    return telefonoRegex.test(telefono);
+  }
+
   async validateUser(email: string, pass: string): Promise<Usuario|any> {
     const user = await this.usuarioRepository.findOne({ where: { email: email} });
     if (user && (await bcrypt.compare(pass, user.contraseña))) {
@@ -43,7 +51,12 @@ export class UsuariosService {
       if (existingUser) {
         throw new ConflictException('El email ya está en uso');
       }
-      const empresa = await this.usuarioRepository.manager.findOne('Empresa', { where: { id_empresa: createUsuarioDto.id_empresa } });
+      if(createUsuarioDto.email){
+      const empresa = await this.usuarioRepository.manager.findOne('Empresa', { where: { id_empresa: createUsuarioDto.id_empresa.id_empresa } });
+      
+      if (createUsuarioDto.telefono && !this.validarTelefonoEcuador(createUsuarioDto.telefono)) {
+        throw new BadRequestException('El teléfono no es válido');
+      }
       if (!empresa) {
         throw new NotFoundException('Empresa no encontrada');
       }
@@ -51,6 +64,10 @@ export class UsuariosService {
       const usuarioData = { ...rest, id_empresa: empresa };
       const nuevoUsuario = this.usuarioRepository.create(usuarioData);
       return await this.usuarioRepository.save(nuevoUsuario); 
+    }
+      const nuevoUsuario = this.usuarioRepository.create(createUsuarioDto);
+      return await this.usuarioRepository.save(nuevoUsuario);
+      
     } catch (error) {
       console.error('Error al crear el usuario:', error);
       // Si ya es una excepción de Nest, relánzala

@@ -3,6 +3,7 @@ import { Factura } from "src/facturas/entities/factura.entity";
 import { Mascota } from "src/mascotas/entities/mascota.entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ApiProperty } from '@nestjs/swagger';
+import { Usuario } from "src/usuarios/entities/usuario.entity";
 
 @Entity()
 export class Cliente {
@@ -35,10 +36,12 @@ export class Cliente {
     @JoinColumn({ name: 'id_empresa' })
     id_empresa: Empresa;
     
-    @ApiProperty({ type: () => [Mascota], description: 'Mascotas asociadas al cliente' })
-    @OneToMany(() => Mascota, (mascota) => mascota.id_cliente)
-    mascotas: Mascota[];
-    
+    @ApiProperty({ type: () => [Factura], description: 'Facturas asociadas al cliente' })
     @OneToMany(() => Factura, factura => factura.cliente)
     facturas: Factura[];
+
+    @ApiProperty({ type: () => Usuario, description: 'Usuario asociado al cliente' })
+    @ManyToOne(() => Usuario, (usuario) => usuario.clientes)
+    @JoinColumn({ name: 'id_usuario' })
+    id_usuario: Usuario;
 }

@@ -1,8 +1,9 @@
 import { Cita } from "src/citas/entities/cita.entity";
 import { Cliente } from "src/clientes/entities/cliente.entity";
 import { HistorialesMedico } from "src/historiales_medicos/entities/historiales_medico.entity";
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Double, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ApiProperty } from '@nestjs/swagger';
+import { Usuario } from "src/usuarios/entities/usuario.entity";
 
 @Entity()
 export class Mascota {
@@ -34,10 +35,26 @@ export class Mascota {
     @Column({ type: 'varchar', length: 50 })
     color: string;
 
-    @ApiProperty({ type: () => Cliente, description: 'Cliente dueño de la mascota' })
-    @ManyToOne(() => Cliente, (cliente) => cliente.mascotas)
-    @JoinColumn({name: 'id_cliente'})
-    id_cliente: Cliente;
+    @ApiProperty({ example: 12.5, description: 'Peso actual de la mascota en kilogramos' })
+    @Column({ type: 'float' })
+    peso_actual: number;
+
+    @ApiProperty({ example: 'Mediano', description: 'Tamaño de la mascota' })
+    @Column({ type: 'varchar', length: 100 })
+    tamano: string;
+
+    @ApiProperty({ example: '950098765432100', description: 'Numero de microchip'})
+    @Column({type: 'varchar', length: 100})
+    num_microchip_collar: string;
+
+    @ApiProperty({ example: 'true', description:'Si la mascota esta eterilizada o no'})
+    @Column({type: 'boolean', default: false})
+    esterilizado: boolean;
+
+    @ApiProperty({ type: () => Usuario, description: 'Usuario dueño de la mascota' })
+    @ManyToOne(() => Usuario, (usuario) => usuario.mascotas)
+    @JoinColumn({name: 'id_usuario'})
+    id_usuario: Usuario;
 
     @ApiProperty({ type: () => [HistorialesMedico], description: 'Historiales médicos de la mascota' })
     @OneToMany(() => HistorialesMedico, (historialMedico) => historialMedico.id_mascota)

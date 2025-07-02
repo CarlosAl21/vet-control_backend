@@ -118,4 +118,22 @@ export class MailService {
       console.error('Error sending payment rejection email:', error);
     }
   }
+
+  async sendWelcomeWithTempPassword(email: string, data: { nombre: string; contraseña: string }) {
+    try {
+      await this.mailerService.sendMail({
+        to: email,
+        subject: 'Bienvenido - Acceso a tu cuenta',
+        template: './welcome', // Debes tener este template en src/mail/templates/welcome.hbs
+        context: {
+          nombre: data.nombre,
+          email: email,
+          contraseña: data.contraseña,
+          mensaje: 'Por favor, inicia sesión y cambia tu contraseña temporal.',
+        },
+      });
+    } catch (error) {
+      console.error('Error sending welcome email:', error);
+    }
+  }
 }

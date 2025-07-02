@@ -1,6 +1,7 @@
 import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Empresa } from "src/empresas/entities/empresa.entity";
+import { DeepPartial } from "typeorm";
 
 export class CreateUsuarioDto {
     @ApiProperty({
@@ -28,6 +29,22 @@ export class CreateUsuarioDto {
     email: string;
 
     @ApiProperty({
+        example: '0987654321',
+        description: 'Telefono del usuario',
+    })
+    @IsString()
+    @IsNotEmpty()
+    telefono: string;
+
+    @ApiProperty({
+        example: 'Quito, Ecuador',
+        description: 'Dirección del usuario',
+    })
+    @IsString()
+    @IsNotEmpty()
+    direccion: string;
+
+    @ApiProperty({
         example: 'ContrasenaSegura123',
         description: 'Contraseña del usuario (en texto plano, se recomienda cifrado posterior)',
     })
@@ -39,8 +56,9 @@ export class CreateUsuarioDto {
         example: '64c9e4b2f0a4e3a1c2d6e9f5',
         description: 'ID de la empresa a la que pertenece el usuario',
     })
-    @IsNotEmpty()
-    id_empresa: string; // Puede ser un string o una entidad Empresa, dependiendo de cómo se maneje la relación en tu aplicación
+    @IsOptional()
+    @IsString()
+    id_empresa: DeepPartial<Empresa>; // Puede ser un string o una entidad Empresa, dependiendo de cómo se maneje la relación en tu aplicación
 
     @ApiPropertyOptional({
         example: 'admin',

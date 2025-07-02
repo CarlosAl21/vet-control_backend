@@ -55,4 +55,22 @@ export class ClientesController {
   remove(@Param('id') id: string) {
     return this.clientesService.remove(id);
   }
+
+  @Get('search/:email')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({ summary: 'Buscar usuario por email' })
+  @ApiResponse({ status: 200, description: 'Usuario encontrado.' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+  findByEmail(@Param('email') email: string) {
+    return this.clientesService.validateUserExists(email);
+  }
+
+  @Get('mascotas/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({ summary: 'Obtener mascotas de un cliente por ID' })
+  @ApiResponse({ status: 200, description: 'Mascotas encontradas.' })
+  @ApiResponse({ status: 404, description: 'Cliente no encontrado.' })
+  findMascotasByClienteId(@Param('id') id: string) {
+    return this.clientesService.obtenerMascotasPorCliente(id);
+  }
 }

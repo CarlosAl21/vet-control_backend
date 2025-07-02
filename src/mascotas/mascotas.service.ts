@@ -72,4 +72,5 @@ export class MascotasService {
       throw new InternalServerErrorException('Error al eliminar la mascota');      
     }
   }
+  
 }
