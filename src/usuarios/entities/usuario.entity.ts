@@ -14,11 +14,11 @@ export class Usuario {
     id_usuario: string;
 
     @ApiProperty({ example: 'Juan', description: 'Nombre del usuario' })
-    @Column({ type: 'varchar', length: 50 })
+    @Column({ type: 'varchar', length: 50, nullable: true })
     nombre: string;
 
     @ApiProperty({ example: 'Pérez', description: 'Apellido del usuario' })
-    @Column({ type: 'varchar', length: 50 })
+    @Column({ type: 'varchar', length: 50, nullable: true })
     apellido: string;
 
     @ApiProperty({ example: 'juan.perez@email.com', description: 'Correo electrónico del usuario' })
@@ -26,11 +26,11 @@ export class Usuario {
     email: string;
 
     @ApiProperty({ example: '0987654321', description: 'Número de teléfono del usuario' })
-    @Column({ type: 'varchar', length: 15 })
+    @Column({ type: 'varchar', length: 15, nullable: true })
     telefono: string;
     
     @ApiProperty({ example: '123 Main St', description: 'Dirección del usuario' })
-    @Column({ type: 'varchar', length: 255 })
+    @Column({ type: 'varchar', length: 255, nullable: true })
     direccion: string;
 
     @ApiProperty({ example: 'hashed_password', description: 'Contraseña del usuario (encriptada)' })

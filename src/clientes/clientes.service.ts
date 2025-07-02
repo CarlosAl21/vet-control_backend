@@ -65,28 +65,19 @@ export class ClientesService {
     return password;
   }
 
-  async create(createClienteDto: CreateClienteDto) {
+  async create(createClienteDto: CreateClienteDto, email?: string) {
     try {
       const usuarioExistente = await this.validateUserExists(
-        createClienteDto.email,
+        email,
       );
       if (!usuarioExistente) {
-        if (!this.validarEmail(createClienteDto.email)) {
+        if (!this.validarEmail(email)) {
           throw new BadRequestException('El email no es válido');
-        }
-        if (!this.validarTelefonoEcuador(createClienteDto.telefono)) {
-          throw new BadRequestException(
-            'El teléfono no es válido para Ecuador',
-          );
         }
 
         const tempPassword = this.generarContrasenaTemporal();
         const nuevoUsuario = this.usuarioRepository.create({
-          nombre: createClienteDto.nombre,
-          apellido: createClienteDto.apellido,
-          email: createClienteDto.email,
-          telefono: createClienteDto.telefono,
-          direccion: createClienteDto.direccion,
+          email: email,
           contraseña: tempPassword,
         });
 
@@ -95,7 +86,6 @@ export class ClientesService {
         await this.mailService.sendWelcomeWithTempPassword(
           usuarioSave.email,
           {
-            nombre: usuarioSave.nombre,
             contraseña: tempPassword,
           }
         );
@@ -105,11 +95,8 @@ export class ClientesService {
         const clienteSave = await this.clienteRepository.save(nuevoCliente);
         return clienteSave;
       }
-      if (!this.validarEmail(createClienteDto.email)) {
+      if (!this.validarEmail(email)) {
         throw new BadRequestException('El email no es válido');
-      }
-      if (!this.validarTelefonoEcuador(createClienteDto.telefono)) {
-        throw new BadRequestException('El teléfono no es válido para Ecuador');
       }
 
       createClienteDto.id_usuario = usuarioExistente;
@@ -155,18 +142,6 @@ export class ClientesService {
       });
       if (!cliente) {
         throw new NotFoundException('Cliente no encontrado');
-      }
-      if (
-        updateClienteDto.email &&
-        !this.validarEmail(updateClienteDto.email)
-      ) {
-        throw new BadRequestException('El email no es válido');
-      }
-      if (
-        updateClienteDto.telefono &&
-        !this.validarTelefonoEcuador(updateClienteDto.telefono)
-      ) {
-        throw new BadRequestException('El teléfono no es válido para Ecuador');
       }
       this.clienteRepository.merge(cliente, updateClienteDto);
       return await this.clienteRepository.save(cliente);

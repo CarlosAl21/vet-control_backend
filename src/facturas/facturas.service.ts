@@ -91,7 +91,7 @@ export class FacturasService {
   async update(id: number, updateFacturaDto: UpdateFacturaDto): Promise<Factura> {
     const factura = await this.facturaRepository.findOne({
       where: { id_factura: id },
-      relations: ['cliente', 'id_empresa'],
+      relations: ['cliente', 'id_empresa', 'id_usuario'],
     });
 
     if (updateFacturaDto.estado) {
@@ -102,11 +102,11 @@ export class FacturasService {
     const facturaGuardada = await this.facturaRepository.save(facturaUpdate);
 
     // Si el estado es "pagado", enviar correo de confirmación al cliente
-    if (facturaGuardada.estado === 'pagado' && facturaGuardada.cliente?.email) {
+    if (facturaGuardada.estado === 'pagado' && facturaGuardada.cliente.id_usuario.email) {
       await this.mailService.sendPaymentConfirmation(
-        facturaGuardada.cliente.email,
+        facturaGuardada.cliente.id_usuario.email,
         {
-          name: `${facturaGuardada.cliente.nombre} ${facturaGuardada.cliente.apellido}`,
+          name: `${facturaGuardada.cliente.id_usuario.nombre} ${facturaGuardada.cliente.id_usuario.apellido}`,
           amount: facturaGuardada.total,
           paymentId: facturaGuardada.id_factura,
         }

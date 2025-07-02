@@ -119,14 +119,13 @@ export class MailService {
     }
   }
 
-  async sendWelcomeWithTempPassword(email: string, data: { nombre: string; contraseña: string }) {
+  async sendWelcomeWithTempPassword(email: string, data: { contraseña: string }) {
     try {
       await this.mailerService.sendMail({
         to: email,
         subject: 'Bienvenido - Acceso a tu cuenta',
         template: './welcome', // Debes tener este template en src/mail/templates/welcome.hbs
         context: {
-          nombre: data.nombre,
           email: email,
           contraseña: data.contraseña,
           mensaje: 'Por favor, inicia sesión y cambia tu contraseña temporal.',
