@@ -20,7 +20,7 @@ export class MascotasController {
   constructor(private readonly mascotasService: MascotasService) {}
 
   @Post()
-  // @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Crear una nueva mascota' })
   @ApiResponse({ status: 201, description: 'Mascota creada correctamente' })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
