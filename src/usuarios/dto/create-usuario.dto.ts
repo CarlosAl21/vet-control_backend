@@ -58,7 +58,7 @@ export class CreateUsuarioDto {
     })
     @IsOptional()
     @IsString()
-    id_empresa: DeepPartial<Empresa>; // Puede ser un string o una entidad Empresa, dependiendo de cómo se maneje la relación en tu aplicación
+    id_empresa?: DeepPartial<Empresa>; // Puede ser un string o una entidad Empresa, dependiendo de cómo se maneje la relación en tu aplicación
 
     @ApiPropertyOptional({
         example: 'admin',
