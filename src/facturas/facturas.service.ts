@@ -52,7 +52,7 @@ export class FacturasService {
 
   findAll(): Promise<Factura[]> {
     return this.facturaRepository.find({
-      relations: ['cliente', 'id_detalle_factura'],
+      relations: ['cliente', 'id_detalle_factura', 'id_usuario'],
     });
   }
 
@@ -68,7 +68,7 @@ export class FacturasService {
 
       const factura = await this.facturaRepository.findOne({
         where: { id_factura: idFactura },
-        relations: ['cliente', 'id_empresa'],
+        relations: ['cliente', 'id_empresa', 'id_usuario'],
       });
 
       if (!factura) {
