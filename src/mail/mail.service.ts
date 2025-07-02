@@ -121,7 +121,7 @@ export class MailService {
 
   async sendWelcomeWithTempPassword(email: string, data: { contraseña: string }) {
     try {
-      await this.mailerService.sendMail({
+      const result = await this.mailerService.sendMail({
         to: email,
         subject: 'Bienvenido - Acceso a tu cuenta',
         template: './welcome', // Debes tener este template en src/mail/templates/welcome.hbs
@@ -131,8 +131,10 @@ export class MailService {
           mensaje: 'Por favor, inicia sesión y cambia tu contraseña temporal.',
         },
       });
+      return result; // O return true;
     } catch (error) {
       console.error('Error sending welcome email:', error);
+      return false;
     }
   }
 }
