@@ -24,6 +24,8 @@ export class AuthController {
         apellido: { type: 'string', example: 'Perez' },
         email: { type: 'string', example: 'usuario@mail.com' },
         contraseña: { type: 'string', example: '123456' },
+        telefono: { type: 'string', example: '1234567890' },
+        direccion: { type: 'string', example: 'Calle Falsa 123'},
         id_empresa: { type: 'string', example: 'empresa-id-123' }, // Si quieres mostrar solo id, cambiar a string
       },
       required: ['nombre', 'apellido', 'email', 'contraseña', 'id_empresa'],
