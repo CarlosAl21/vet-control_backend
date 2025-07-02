@@ -14,7 +14,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Registrar un nuevo usuario' })
   @ApiBody({
     schema: {
