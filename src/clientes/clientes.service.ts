@@ -65,7 +65,7 @@ export class ClientesService {
     return password;
   }
 
-  async create(createClienteDto: CreateClienteDto, email?: string) {
+  async create(createClienteDto: CreateClienteDto, email: string) {
     try {
       const usuarioExistente = await this.validateUserExists(
         email,
