@@ -16,7 +16,7 @@ import { join } from 'path';
         },
       },
       defaults: {
-        from: '"Sistema de Reservas" <noreply@example.com>',
+        from: '"VetControl" <noreply@example.com>',
       },
       template: {
         dir: join(__dirname, '..', '..', 'src', 'mail', 'templates'),
