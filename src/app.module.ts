@@ -36,6 +36,7 @@ import { MailModule } from './mail/mail.module';
 import { FotosHistorialModule } from './fotos_historial/fotos_historial.module';
 import { DetalleHistorialModule } from './detalle_historial/detalle_historial.module';
 import { DetalleHistorial } from './detalle_historial/entities/detalle_historial.entity';
+import { RecordatoriosModule } from './recordatorios/recordatorios.module';
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { DetalleHistorial } from './detalle_historial/entities/detalle_historial
     MailModule,
     FotosHistorialModule,
     DetalleHistorialModule,
+    RecordatoriosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

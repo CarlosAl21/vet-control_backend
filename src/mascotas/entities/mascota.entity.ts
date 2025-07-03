@@ -4,6 +4,7 @@ import { HistorialesMedico } from "src/historiales_medicos/entities/historiales_
 import { Column, Double, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ApiProperty } from '@nestjs/swagger';
 import { Usuario } from "src/usuarios/entities/usuario.entity";
+import { Recordatorio } from "src/recordatorios/entities/recordatorio.entity";
 
 @Entity()
 export class Mascota {
@@ -63,4 +64,8 @@ export class Mascota {
     @ApiProperty({ type: () => [Cita], description: 'Citas asociadas a la mascota' })
     @OneToMany(() => Cita, (cita) => cita.id_mascota)
     citas: Cita[];
+    
+    @ApiProperty({ type: () => Recordatorio, description: 'Recordatorio asociado a la mascota' })
+    @OneToMany(() => Recordatorio, (recordatorio) => recordatorio.id_mascota)
+    recordatorios: Recordatorio[];
 }
