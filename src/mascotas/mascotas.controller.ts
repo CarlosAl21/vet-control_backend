@@ -108,7 +108,7 @@ export class MascotasController {
     return this.mascotasService.remove(id);
   }
 
-  @Get('dueño/:id')
+  @Get('owner/:id')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Obtener todas las mascotas de un usuario por su ID' })
   @ApiParam({ name: 'id', description: 'ID del usuario (dueño) de las mascotas', example: 'user123xyz' })
@@ -139,4 +139,37 @@ export class MascotasController {
   findByUser(@Param('id') id: string) {
     return this.mascotasService.findByIdUser(id);
   }
+
+  @Get('emailOwner/:email')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Obtener todas las mascotas de un usuario por su Email' })
+  @ApiParam({ name: 'email', description: 'Email del usuario (dueño) de las mascotas', example: 'coso123@gmail.com' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de mascotas del usuario',
+    schema: {
+      type: 'array',
+      items: {
+        example: {
+          id_mascota: 'mascota123xyz',
+          nombre: 'Firulais',
+          especie: 'Perro',
+          raza: 'Labrador',
+          sexo: 'Macho',
+          fecha_nacimiento: '2018-05-20',
+          color: 'Negro',
+          peso_actual: 12.5,
+          tamano: 'Mediano',
+          num_microchip_collar: '950098765432100',
+          esterilizado: true,
+          id_cliente: { id_cliente: '62f4c7b3d48f7c1b9a9d1234' },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Usuario o mascotas no encontradas' })
+  findByUserEmail(@Param('email') email: string) {
+    return this.mascotasService.findByUserEmail(email);
+  }
+
 }

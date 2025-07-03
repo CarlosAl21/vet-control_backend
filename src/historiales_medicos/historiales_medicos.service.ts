@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { FotosHistorial } from 'src/fotos_historial/entities/fotos_historial.entity';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import * as Multer from 'multer';
+import { Mascota } from 'src/mascotas/entities/mascota.entity';
 
 @Injectable()
 export class HistorialesMedicosService {
@@ -16,6 +17,8 @@ export class HistorialesMedicosService {
     @InjectRepository(FotosHistorial)
     private readonly fotosHistorialRepository: Repository<FotosHistorial>,
     private readonly cloudinaryService: CloudinaryService,
+    @InjectRepository(Mascota)
+    private readonly mascotaRepository: Repository<Mascota>,
   ) {
     console.log('Servicios de historiales medicos inicializados');
   }
@@ -96,6 +99,28 @@ export class HistorialesMedicosService {
         throw error;
       }
       throw new InternalServerErrorException('Error al eliminar el historial medico');
+    }
+  }
+
+  async FindByMascotaId(mascotaId: string) {
+    try {
+      const mascota = await this.mascotaRepository.findOne({ where: { id_mascota: mascotaId } });
+      if (!mascota) {
+        throw new NotFoundException('Mascota no encontrada');
+      }
+      const historiales = await this.historialesMedicoRepository.find({
+        where: { id_mascota: mascota }, relations: ['fotos_historial', 'detalle_historial'],
+      });
+      if (historiales.length === 0) {
+        throw new NotFoundException('No se encontraron historiales para esta mascota');
+      }
+      return historiales;
+    } catch (error) {
+      console.error('Error al buscar historiales por ID de mascota:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al buscar historiales por ID de mascota');
     }
   }
 }

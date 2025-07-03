@@ -32,7 +32,7 @@ export class HistorialesMedicosController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Obtener todos los historiales médicos' })
   @ApiResponse({ status: 200, description: 'Lista de historiales médicos.' })
   @ApiResponse({ status: 401, description: 'No autorizado.' })
@@ -41,7 +41,7 @@ export class HistorialesMedicosController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Obtener historial médico por ID' })
   @ApiParam({ name: 'id', description: 'ID del historial médico', example: 'hist123' })
   @ApiResponse({ status: 200, description: 'Historial médico encontrado.' })
@@ -73,5 +73,15 @@ export class HistorialesMedicosController {
   @ApiResponse({ status: 401, description: 'No autorizado.' })
   remove(@Param('id') id: string) {
     return this.historialesMedicosService.remove(id);
+  }
+
+  @Get('mascota/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Obtener historiales médicos por ID de mascota' })
+  @ApiParam({ name: 'id', description: 'ID de la mascota', example: 'masc123' })
+  @ApiResponse({ status: 200, description: 'Lista de historiales médicos para la mascota.' })
+  @ApiResponse({ status: 404, description: 'Mascota no encontrada o sin historiales médicos.' })
+  findByMascotaId(@Param('id') mascotaId: string) {
+    return this.historialesMedicosService.FindByMascotaId(mascotaId);
   }
 }
