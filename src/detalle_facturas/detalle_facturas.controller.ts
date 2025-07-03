@@ -29,7 +29,7 @@ export class DetalleFacturaController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Obtener un detalle de factura por ID' })
   @ApiParam({ name: 'id', description: 'ID del detalle de factura' })
   @ApiResponse({ status: 200, description: 'Detalle de factura encontrado.' })

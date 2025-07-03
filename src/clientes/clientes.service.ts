@@ -11,6 +11,7 @@ import { Cliente } from './entities/cliente.entity';
 import { Repository } from 'typeorm';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { MailService } from 'src/mail/mail.service';
+import { Empresa } from 'src/empresas/entities/empresa.entity';
 
 @Injectable()
 export class ClientesService {
@@ -20,6 +21,8 @@ export class ClientesService {
     @InjectRepository(Usuario)
     private usuarioRepository: Repository<Usuario>,
     private readonly mailService: MailService,
+    @InjectRepository(Empresa)
+    private empresaRepository: Repository<Empresa>,
   ) {
     console.log('Servicios del cliente inicializados');
   }
@@ -192,6 +195,61 @@ export class ClientesService {
       }
       throw new InternalServerErrorException(
         'Error al obtener las mascotas del cliente',
+      );
+    }
+  }
+
+  async FindByUserId(id_usuario: string) {
+    try {
+      const usuario = await this.usuarioRepository.findOne({
+        where: { id_usuario: id_usuario },
+        relations: ['clientes', 'clientes.id_empresa'],
+      });
+      if (!usuario) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+      return usuario.clientes;
+    } catch (error) {
+      console.error('Error al encontrar el cliente por ID de usuario:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'Error al encontrar el cliente por ID de usuario',
+      );
+    }
+  }
+
+  async FindByEmail(email: string, empresaId: string) {
+    try {
+      const usuario = await this.usuarioRepository.findOne({
+        where: { email: email },
+      });
+      if (!usuario) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+      const empresa = await this.empresaRepository.findOne({
+        where: { id_empresa: empresaId },
+      });
+      if (!empresa) {
+        throw new NotFoundException('Empresa no encontrada');
+      }
+      // Verifica si el usuario pertenece a la empresa
+      const cliente = await this.clienteRepository.findOne({
+        where: { id_usuario: usuario, id_empresa: empresa },
+        relations: ['id_usuario', 'id_usuario.mascotas'],
+      });
+      if (!cliente) {
+        throw new NotFoundException('Cliente no encontrado para este usuario y empresa');
+      }
+      return cliente;
+    } catch (error) {
+      console.error('Error al encontrar el usuario por email:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'Error al encontrar el usuario por email',
       );
     }
   }

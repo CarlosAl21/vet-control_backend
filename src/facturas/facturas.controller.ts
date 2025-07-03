@@ -28,7 +28,7 @@ export class FacturasController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Obtener una factura por su ID' })
   @ApiParam({ name: 'id', description: 'ID de la factura', example: 'uuid-factura-1234' })
   @ApiResponse({ status: 200, description: 'Factura encontrada y retornada.' })
@@ -36,10 +36,9 @@ export class FacturasController {
   findOne(@Param('id') id: string) {
     return this.facturasService.findOne(id);
   }
-  
 
   @Get('empresa/:id_empresa')
-  @UseGuards(JwtAuthGuard,RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Obtener todas las facturas o filtrar por empresa' })
   @ApiResponse({ status: 200, description: 'Lista de facturas retornada.' })
   findAll(@Param('id_empresa') id_empresa: string) {
@@ -66,5 +65,15 @@ export class FacturasController {
   @ApiResponse({ status: 404, description: 'Factura no encontrada.' })
   remove(@Param('id') id: string) {
     return this.facturasService.remove(id);
+  }
+
+  @Get('usuario/:id_usuario')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Obtener facturas por ID de usuario' })
+  @ApiParam({ name: 'id_usuario', description: 'ID del usuario', example: 'uuid-usuario-1234' })
+  @ApiResponse({ status: 200, description: 'Lista de facturas para el usuario.' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado o sin facturas.' })
+  findByUserId(@Param('id_usuario') id_usuario: string) {
+    return this.facturasService.findByUserId(id_usuario);
   }
 }

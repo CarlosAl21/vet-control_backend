@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { DetalleHistorialService } from './detalle_historial.service';
 import { CreateDetalleHistorialDto } from './dto/create-detalle_historial.dto';
 import { UpdateDetalleHistorialDto } from './dto/update-detalle_historial.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @ApiTags('detalle-historial')
 @Controller('detalle-historial')
@@ -10,6 +12,7 @@ export class DetalleHistorialController {
   constructor(private readonly detalleHistorialService: DetalleHistorialService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Crear un nuevo detalle de historial' })
   @ApiResponse({ status: 201, description: 'Detalle de historial creado exitosamente.' })
   @ApiBody({
@@ -36,6 +39,7 @@ export class DetalleHistorialController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Obtener todos los detalles de historial' })
   @ApiResponse({ status: 200, description: 'Lista de detalles de historial.' })
   findAll() {
@@ -43,6 +47,7 @@ export class DetalleHistorialController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Obtener un detalle de historial por ID' })
   @ApiResponse({ status: 200, description: 'Detalle de historial encontrado.' })
   @ApiResponse({ status: 404, description: 'Detalle de historial no encontrado.' })
@@ -51,6 +56,7 @@ export class DetalleHistorialController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Actualizar un detalle de historial por ID' })
   @ApiResponse({ status: 200, description: 'Detalle de historial actualizado.' })
   @ApiResponse({ status: 404, description: 'Detalle de historial no encontrado.' })
@@ -78,6 +84,7 @@ export class DetalleHistorialController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Eliminar un detalle de historial por ID' })
   @ApiResponse({ status: 200, description: 'Detalle de historial eliminado.' })
   @ApiResponse({ status: 404, description: 'Detalle de historial no encontrado.' })

@@ -13,20 +13,20 @@ import { Cliente } from 'src/clientes/entities/cliente.entity';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
 import e from 'express';
 import { MailService } from 'src/mail/mail.service';
+import { Usuario } from 'src/usuarios/entities/usuario.entity';
 
 @Injectable()
 export class FacturasService {
   constructor(
     @InjectRepository(Factura)
     private readonly facturaRepository: Repository<Factura>,
-
     @InjectRepository(Cliente)
     private readonly clienteRepository: Repository<Cliente>,
-
     @InjectRepository(Empresa)
     private readonly empresaRepository: Repository<Empresa>,
-
     private readonly mailService: MailService, // Inyecta el servicio de correo
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
   ) {}
 
   async create(createFacturaDto: CreateFacturaDto) {
@@ -129,4 +129,35 @@ export class FacturasService {
     });
     return empresaEntity.facturas; // Retorna las facturas asociadas a la empresa
   }
+
+  async findByUserId(id_usuario: string) {
+    try {
+      const user = await this.usuarioRepository.findOne({
+        where: { id_usuario }, relations: ['clientes']
+      });
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+      const clientes = user.clientes;
+      if (!clientes || clientes.length === 0) {
+        throw new NotFoundException('No se encontraron clientes asociados al usuario');
+      }
+      const clienteIds = clientes.map(cliente => cliente.id_cliente);
+      const facturas = await this.facturaRepository.find({
+        where: { cliente: { id_cliente: In(clienteIds) } },
+        relations: ['cliente', 'id_empresa', 'id_usuario'],
+      });
+      if (facturas.length === 0) {
+        throw new NotFoundException('No se encontraron facturas para el usuario');
+      }
+      return facturas;
+    } catch (error) {
+      console.error('Error al buscar las facturas por usuario:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al buscar las facturas por usuario');
+    }
+  }
+    
 }

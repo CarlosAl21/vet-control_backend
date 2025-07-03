@@ -99,4 +99,24 @@ export class MascotasService {
       throw new InternalServerErrorException('Error al buscar las mascotas del usuario'+ error.message);
     }
   }
+
+  async findByUserEmail(email: string){
+    try {
+      const user = await this.usuarioRepository.findOne({where: { email: email }});
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+      const mascotas = await this.mascotaRepository.find({where: { id_usuario: user }, relations: ['id_usuario']});
+      if (mascotas.length === 0) {
+        throw new NotFoundException('No se encontraron mascotas para este usuario');
+      }
+      return mascotas;
+    } catch (error) {
+      console.log('Error al buscar las mascotas del usuario', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al buscar las mascotas del usuario'+ error.message);
+    }
+  }
 }

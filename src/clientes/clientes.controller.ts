@@ -102,4 +102,22 @@ export class ClientesController {
   findMascotasByClienteId(@Param('id') id: string) {
     return this.clientesService.obtenerMascotasPorCliente(id);
   }
+
+  @Get('usuario/:id_usuario')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Obtener clientes por ID de usuario' })
+  @ApiResponse({ status: 200, description: 'Clientes encontrados.' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+  findByUserId(@Param('id_usuario') id_usuario: string) {
+    return this.clientesService.FindByUserId(id_usuario);
+  }
+
+  @Get('userEmail/:email/:empresaId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({ summary: 'Obtener cliente por email de usuario y empresa' })
+  @ApiResponse({ status: 200, description: 'Cliente encontrado.' })
+  @ApiResponse({ status: 404, description: 'Cliente no encontrado.' })
+  findByUserEmail(@Param('email') email: string, @Param('empresaId') empresaId: string) {
+    return this.clientesService.FindByEmail(email, empresaId);
+  }
 }
