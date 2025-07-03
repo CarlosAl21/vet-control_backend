@@ -113,7 +113,7 @@ export class ClientesService {
   }
 
   findAll() {
-    return this.clienteRepository.find({ relations: ['id_empresa'] });
+    return this.clienteRepository.find({ relations: ['id_empresa','id_usuario'] });
   }
 
   async findOne(id: string) {

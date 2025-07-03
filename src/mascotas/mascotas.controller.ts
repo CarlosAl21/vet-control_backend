@@ -68,7 +68,7 @@ export class MascotasController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Actualizar una mascota existente' })
   @ApiParam({ name: 'id', description: 'ID de la mascota a actualizar' })
   @ApiResponse({ status: 200, description: 'Mascota actualizada correctamente' })
@@ -108,8 +108,7 @@ export class MascotasController {
     return this.mascotasService.remove(id);
   }
 
-  @Get('dueño/:id')
-  @UseGuards(JwtAuthGuard)
+  @Get('owner/:id')
   @ApiOperation({ summary: 'Obtener todas las mascotas de un usuario por su ID' })
   @ApiParam({ name: 'id', description: 'ID del usuario (dueño) de las mascotas', example: 'user123xyz' })
   @ApiResponse({

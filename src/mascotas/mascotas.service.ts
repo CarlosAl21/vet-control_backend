@@ -81,11 +81,12 @@ export class MascotasService {
   
   async findByIdUser(id: string){
     try {
-      const user = await this.usuarioRepository.findOne({where: { id_usuario: id }});
-      if (!user) {
-        throw new NotFoundException('Usuario no encontrado');
-      }
-      const mascotas = await this.mascotaRepository.find({where: { id_usuario: user }, relations: ['id_usuario']});
+       const mascotas = await this.mascotaRepository
+        .createQueryBuilder('mascota')
+        .leftJoinAndSelect('mascota.id_usuario', 'usuario')
+        .where('usuario.id_usuario = :id', { id })
+        .getMany();
+      
       if (mascotas.length === 0) {
         throw new NotFoundException('No se encontraron mascotas para este usuario');
       }
