@@ -35,6 +35,6 @@ import { ApiProperty } from '@nestjs/swagger';
     @OneToMany(() => DetalleFactura, (detalle) => detalle.id_factura, { eager: true})
     detalles: DetalleFactura[];
 
-    @Column({ type: 'enum', enum: ['pagado', 'pendiente', 'anulado'], default: 'pendiente' })
-    estado: 'pagado' | 'pendiente' | 'anulado';
+    @Column({ type: 'enum', enum: ['pagado', 'pendiente', 'anulado', 'vencido'], default: 'pendiente' })
+    estado: 'pagado' | 'pendiente' | 'anulado' | 'vencido';
   }
