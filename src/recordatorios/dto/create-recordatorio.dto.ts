@@ -10,6 +10,11 @@ export class CreateRecordatorioDto {
     @IsNotEmpty()
     tipo: 'vacuna' | 'medicamento' | 'desparacitacion';
 
+    @ApiProperty({ example: 'Vacunación anual', description: 'Título del recordatorio' })
+    @IsString()
+    @IsNotEmpty()
+    titulo: string;
+
     @ApiProperty({ example: 'Vacuna contra la rabia', description: 'Descripción del recordatorio' })
     @IsString()
     @IsNotEmpty()

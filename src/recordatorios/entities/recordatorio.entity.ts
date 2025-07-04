@@ -9,6 +9,9 @@ export class Recordatorio {
     @Column({ type: 'varchar', length: 50 })
     tipo: string;
 
+    @Column({ type: 'varchar', length: 100 })
+    titulo: string;
+
     @Column({ type: 'varchar', length: 255 })
     descripcion: string;
 

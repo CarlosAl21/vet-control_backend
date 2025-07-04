@@ -18,6 +18,7 @@ export class RecordatoriosController {
         summary: 'Recordatorio de vacuna',
         value: {
           tipo: 'vacuna',
+          titulo: 'Vacunación anual',
           descripcion: 'Vacuna contra la rabia',
           fecha_programada: '2023-10-01',
           completado: false,
@@ -58,6 +59,7 @@ export class RecordatoriosController {
         summary: 'Actualizar recordatorio',
         value: {
           tipo: 'medicamento',
+          titulo: 'Tratamiento antibiótico',
           descripcion: 'Antibiótico para infección',
           fecha_programada: '2023-11-15',
           completado: true,
