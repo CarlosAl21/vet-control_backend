@@ -46,7 +46,7 @@ export class FacturasController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Actualizar una factura por su ID' })
   @ApiParam({ name: 'id', description: 'ID de la factura a actualizar', example: 'uuid-factura-1234' })
   @ApiBody({ type: UpdateFacturaDto })
