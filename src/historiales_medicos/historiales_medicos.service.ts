@@ -8,6 +8,7 @@ import { FotosHistorial } from 'src/fotos_historial/entities/fotos_historial.ent
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import * as Multer from 'multer';
 import { Mascota } from 'src/mascotas/entities/mascota.entity';
+import { Empresa } from 'src/empresas/entities/empresa.entity';
 
 @Injectable()
 export class HistorialesMedicosService {
@@ -19,11 +20,28 @@ export class HistorialesMedicosService {
     private readonly cloudinaryService: CloudinaryService,
     @InjectRepository(Mascota)
     private readonly mascotaRepository: Repository<Mascota>,
+    @InjectRepository(Empresa)
+    private readonly empresaRepository: Repository<Empresa>,
   ) {
     console.log('Servicios de historiales medicos inicializados');
   }
   async create(createHistorialesMedicoDto: CreateHistorialesMedicoDto, files?: Array<Multer.File>) {
     try {
+      const mascota = await this.mascotaRepository.findOne({ where: { id_mascota: createHistorialesMedicoDto.id_mascota.id_mascota } });
+      if (!mascota) {
+        throw new NotFoundException('Mascota no encontrada');
+      }
+      // Asignar la mascota al DTO
+      createHistorialesMedicoDto.id_mascota = mascota;
+
+      // Verificar si la empresa existe
+      const empresa = await this.empresaRepository.findOne({ where: { id_empresa: createHistorialesMedicoDto.id_empresa.id_empresa } });
+      if (!empresa) {
+        throw new NotFoundException('Empresa no encontrada');
+      }
+      // Asignar la empresa al DTO
+      createHistorialesMedicoDto.id_empresa = empresa;
+
       const nuevoHistorial = this.historialesMedicoRepository.create(createHistorialesMedicoDto);
       const historialGuardado = await this.historialesMedicoRepository.save(nuevoHistorial);
 

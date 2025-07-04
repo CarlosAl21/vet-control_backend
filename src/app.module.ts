@@ -37,6 +37,8 @@ import { FotosHistorialModule } from './fotos_historial/fotos_historial.module';
 import { DetalleHistorialModule } from './detalle_historial/detalle_historial.module';
 import { DetalleHistorial } from './detalle_historial/entities/detalle_historial.entity';
 import { RecordatoriosModule } from './recordatorios/recordatorios.module';
+import { ServiciosModule } from './servicios/servicios.module';
+import { Servicio } from './servicios/entities/servicio.entity';
 
 @Module({
   imports: [
@@ -65,6 +67,7 @@ import { RecordatoriosModule } from './recordatorios/recordatorios.module';
         Subcategoria,
         Usuario,
         DetalleHistorial,
+        Servicio,
       ],
       extra: {
         options: `-c search_path=${process.env.DB_SCHEMA}`,
@@ -93,6 +96,7 @@ import { RecordatoriosModule } from './recordatorios/recordatorios.module';
     FotosHistorialModule,
     DetalleHistorialModule,
     RecordatoriosModule,
+    ServiciosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

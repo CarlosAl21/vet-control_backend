@@ -6,6 +6,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Cliente } from 'src/clientes/entities/cliente.entity';
 import { IsOptional } from 'class-validator';
 import { Mascota } from 'src/mascotas/entities/mascota.entity';
+import { DetalleHistorial } from 'src/detalle_historial/entities/detalle_historial.entity';
 
 @Entity()
 export class Usuario {
@@ -57,6 +58,9 @@ export class Usuario {
 
     @OneToMany(() => Mascota, (mascota) => mascota.id_usuario)
     mascotas: Mascota[];
+    
+    @OneToMany(() => DetalleHistorial, (detalleHistorial) => detalleHistorial.id_veterinario)
+    detalle_historial: DetalleHistorial[];
 
     @BeforeInsert()
     async hashPassword() {

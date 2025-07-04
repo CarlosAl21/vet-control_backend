@@ -91,4 +91,13 @@ export class DetalleHistorialController {
   remove(@Param('id') id: string) {
     return this.detalleHistorialService.remove(id);
   }
+
+  @Get('historial/:id_historial')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({ summary: 'Obtener detalles de historial por ID de historial' })
+  @ApiResponse({ status: 200, description: 'Detalles de historial encontrados.' })
+  @ApiResponse({ status: 404, description: 'Historial no encontrado o sin detalles.' })
+  findByHistorialId(@Param('id_historial') id_historial: string) {
+    return this.detalleHistorialService.findByHistorialId(id_historial);
+  }
 }

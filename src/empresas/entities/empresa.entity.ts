@@ -4,8 +4,10 @@ import { Lote } from "src/lotes/entities/lote.entity";
 import { Producto } from "src/productos/entities/producto.entity";
 import { Proveedor } from "src/proveedores/entities/proveedor.entity";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ApiProperty } from '@nestjs/swagger';
+import { Servicio } from "src/servicios/entities/servicio.entity";
+import { HistorialesMedico } from "src/historiales_medicos/entities/historiales_medico.entity";
 
 @Entity()
 export class Empresa {
@@ -33,6 +35,14 @@ export class Empresa {
     @Column({ type: 'varchar', length: 100 })
     email: string; // Correo electrónico de la empresa
 
+    @ApiProperty({ example: '2023-01-01', description: 'Fecha de creación de la empresa' })
+    @Column({ type: 'date', nullable: true })
+    fecha_creacion: Date; // Fecha de creación de la empresa
+
+    @ApiProperty({ example: '2023-01-01', description: 'Fecha de actualización de la empresa' })
+    @Column({ type: 'date', nullable: true })
+    fecha_actualizacion: Date; // Fecha de actualización de la empresa
+
     @ApiProperty({ type: () => [Proveedor], description: 'Proveedores asociados a la empresa' })
     @OneToMany(() => Proveedor, (proveedor) => proveedor.id_empresa)
     proveedores: Proveedor[]; // Relación con la entidad Proveedor
@@ -56,4 +66,23 @@ export class Empresa {
     @ApiProperty({ type: () => [Lote], description: 'Lotes asociados a la empresa' })
     @OneToMany(() => Lote, (lote) => lote.id_empresa)
     lotes: Lote[]; // Relación con la entidad Lote
+
+    @ApiProperty({ type: () => [Servicio], description: 'Servicios asociados a la empresa' })
+    @OneToMany(() => Servicio, (servicio) => servicio.id_empresa)
+    servicios: Servicio[]; // Relación con la entidad Servicio
+
+    @ApiProperty({ type: () => [HistorialesMedico], description: 'Historiales médicos asociados a la empresa' })
+    @OneToMany(() => HistorialesMedico, (historial) => historial.id_empresa)
+    historiales_medicos: HistorialesMedico[]; // Relación con la entidad HistorialesMedico
+
+    @BeforeInsert()
+    setFechaCreacion() {
+        this.fecha_creacion = new Date();
+    }
+
+    @BeforeUpdate()
+    setFechaActualizacion() {
+        this.fecha_actualizacion = new Date();
+    }
 }
+
