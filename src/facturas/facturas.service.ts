@@ -146,7 +146,7 @@ export class FacturasService {
       const clienteIds = clientes.map(cliente => cliente.id_cliente);
       const facturas = await this.facturaRepository.find({
         where: { cliente: { id_cliente: In(clienteIds) } },
-        relations: ['cliente', 'id_empresa', 'id_usuario'],
+        relations: ['cliente', 'id_empresa', 'detalles'],
       });
       if (facturas.length === 0) {
         throw new NotFoundException('No se encontraron facturas para el usuario');
