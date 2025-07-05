@@ -74,4 +74,25 @@ export class MailService {
       return false;
     }
   }
+
+  async sendPasswordReset(email: string, data: { token: string }) {
+  try {
+    const resetUrl = `http://localhost:5173/reset-password?token=${data.token}`;
+    const result = await this.mailerService.sendMail({
+      to: email,
+      subject: 'Restablecimiento de Contraseña',
+      template: './password-reset',
+      context: {
+        email: email,
+        token: data.token,
+        resetUrl,
+        mensaje: 'Haz clic en el enlace para restablecer tu contraseña.',
+      },
+    });
+    return result;
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    return false;
+  }
+}
 }
