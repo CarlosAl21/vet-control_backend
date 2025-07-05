@@ -77,7 +77,7 @@ export class MailService {
 
   async sendPasswordReset(email: string, data: { token: string }) {
   try {
-    const resetUrl = `http://localhost:5173/reset-password?token=${data.token}`;
+    const resetUrl = `https://vet-control-tau.vercel.app/reset-password?token=${data.token}`;
     const result = await this.mailerService.sendMail({
       to: email,
       subject: 'Restablecimiento de Contraseña',
