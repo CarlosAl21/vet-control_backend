@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -135,8 +135,21 @@ async resetPasswordWithToken(token: string, newPassword: string) {
     }
 
     if (updateUsuarioDto.contraseña) {
-      updateUsuarioDto.contraseña = await bcrypt.hash(updateUsuarioDto.contraseña, 10);
+    if (!updateUsuarioDto.currentPassword) {
+      throw new BadRequestException('La contraseña actual es requerida');
     }
+
+    const isPasswordValid = await bcrypt.compare(
+      updateUsuarioDto.currentPassword,
+      usuario.contraseña,
+    );
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Contraseña actual incorrecta');
+    }
+
+    // Hashear la nueva contraseña
+    updateUsuarioDto.contraseña = await bcrypt.hash(updateUsuarioDto.contraseña, 10);
+  }
 
     let updateData:any = { ...updateUsuarioDto };
     if (updateUsuarioDto.id_empresa) {
