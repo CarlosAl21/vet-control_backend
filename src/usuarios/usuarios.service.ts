@@ -127,24 +127,26 @@ async resetPasswordWithToken(token: string, newPassword: string) {
 
   async update(id: string, updateUsuarioDto: UpdateUsuarioDto) {
     try {
-      const usuario = await this.usuarioRepository.findOneBy({ id_usuario: id });
-      if (!usuario) {
-        throw new NotFoundException('Usuario no encontrado');
-      }
-      if (updateUsuarioDto.email && !this.validarEmail(updateUsuarioDto.email)) {
-        throw new BadRequestException('El email no es válido');
-      }
-      let updateData: any = { ...updateUsuarioDto };
-      if (updateUsuarioDto.id_empresa) {
-        const empresa = await this.usuarioRepository.manager.findOne('Empresa', { where: { id_empresa: updateUsuarioDto.id_empresa } });
-        if (!empresa) {
-          throw new NotFoundException('Empresa no encontrada');
-        }
-        updateData.id_empresa = empresa;
-      }
-      this.usuarioRepository.merge(usuario, updateData);
-      return this.usuarioRepository.save(usuario);
-    } catch (error) {
+    const usuario = await this.usuarioRepository.findOneBy({ id_usuario: id });
+    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
+    if (updateUsuarioDto.email && !this.validarEmail(updateUsuarioDto.email)) {
+      throw new BadRequestException('El email no es válido');
+    }
+
+    if (updateUsuarioDto.contraseña) {
+      updateUsuarioDto.contraseña = await bcrypt.hash(updateUsuarioDto.contraseña, 10);
+    }
+
+    let updateData:any = { ...updateUsuarioDto };
+    if (updateUsuarioDto.id_empresa) {
+      const empresa = await this.usuarioRepository.manager.findOne('Empresa', {
+        where: { id_empresa: updateUsuarioDto.id_empresa },
+      });
+      if (!empresa) throw new NotFoundException('Empresa no encontrada');
+      updateData.id_empresa = empresa;
+    }
+  } catch (error) {
       console.error('Error al actualizar el usuario:', error);
       if (
         error instanceof NotFoundException ||
