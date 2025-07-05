@@ -9,12 +9,14 @@ import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { UsuariosModule } from 'src/usuarios/usuarios.module';
 import { JwtStrategy } from './jwt.strategy';
 import { Empresa } from 'src/empresas/entities/empresa.entity'; // Asegúrate de que la entidad Empresa esté correctamente importada
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Usuario, Empresa]), // Asegúrate de que la entidad Usuario esté correctamente importada
     ConfigModule,
     UsuariosModule,
+    MailModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

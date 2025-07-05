@@ -3,6 +3,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColum
 import { ApiProperty } from '@nestjs/swagger';
 import { FotosHistorial } from "src/fotos_historial/entities/fotos_historial.entity";
 import { DetalleHistorial } from "src/detalle_historial/entities/detalle_historial.entity";
+import { Empresa } from "src/empresas/entities/empresa.entity";
 
 @Entity()
 export class HistorialesMedico {
@@ -22,6 +23,11 @@ export class HistorialesMedico {
     @ManyToOne(() => Mascota, (mascota) => mascota.historiales_medicos)
     @JoinColumn({ name: 'id_mascota' })
     id_mascota: Mascota;
+
+    @ApiProperty({ type: () => Empresa, description: 'Empresa asociada al historial médico' })
+    @ManyToOne(() => Empresa, (empresa) => empresa.historiales_medicos)
+    @JoinColumn({ name: 'id_empresa' })
+    id_empresa: Empresa;
 
     @OneToMany(() => FotosHistorial, (fotosHistorial) => fotosHistorial.historial)
     fotos_historial: FotosHistorial[];

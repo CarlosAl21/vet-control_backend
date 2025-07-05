@@ -1,25 +1,62 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { HistorialesMedico } from 'src/historiales_medicos/entities/historiales_medico.entity';
+import { Servicio } from 'src/servicios/entities/servicio.entity';
+import { Usuario } from 'src/usuarios/entities/usuario.entity';
+import { DeepPartial } from 'typeorm';
 
 export class CreateDetalleHistorialDto {
   @ApiProperty({
     description: 'ID o entidad del historial médico asociado',
     type: () => HistorialesMedico,
-    example: { id_historial: 'abc123', diagnostico: 'Gripe canina' },
+    example: { id_historial: 'abc123'},
   })
   @IsNotEmpty()
-  id_historial: HistorialesMedico;
+  id_historial: DeepPartial<HistorialesMedico>;
 
   @ApiProperty({
-    description: 'Fecha de registro del detalle',
-    example: '2025-06-24',
-    type: Date,
-    format: 'date',
+    description: 'Peso del animal en kg',
+    example: 12.5,
+    type: Number,
   })
-  @IsDate()
+  @IsNumber()
   @IsNotEmpty()
-  fecha_registro: Date;
+  peso_kg: number;
+
+  @ApiProperty({
+    description: 'Temperatura del animal en grados Celsius',
+    example: 38.5,
+    type: Number,
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  temperatura_c: number;
+
+  @ApiProperty({
+    description: 'Frecuencia cardíaca del animal en latidos por minuto',
+    example: 120,
+    type: Number,
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  frecuencia_cardiaca: number;
+
+  @ApiProperty({
+    description: 'Frecuencia respiratoria del animal',
+    example: 30,
+    type: Number,
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  frecuencia_respiratoria: number;
+
+  @ApiProperty({
+    description: 'Diagnóstico realizado',
+    example: 'Gripe canina',
+  })
+  @IsString()
+  @IsNotEmpty()
+  diagnostico: string;
 
   @ApiProperty({
     description: 'Tratamiento aplicado',
@@ -30,54 +67,34 @@ export class CreateDetalleHistorialDto {
   tratamiento: string;
 
   @ApiProperty({
-    description: 'Medicamento administrado',
-    example: 'Amoxicilina',
-  })
-  @IsString()
-  @IsNotEmpty()
-  medicamento: string;
-
-  @ApiProperty({
-    description: 'Dosis del medicamento',
-    example: '500mg',
-  })
-  @IsString()
-  @IsNotEmpty()
-  dosis: string;
-
-  @ApiPropertyOptional({
     description: 'Observaciones adicionales',
     example: 'El paciente mostró mejoría al tercer día de tratamiento.',
   })
   @IsString()
-  @IsOptional()
-  observaciones?: string;
+  @IsNotEmpty()
+  observaciones: string;
 
   @ApiPropertyOptional({
-    description: 'Peso del animal en kg',
-    example: 12.5,
-    type: Number,
+    description: 'Campo flexible para información personalizada',
+    example: { mucosas: 'rosadas', glucosa: '120 mg/dL' },
+    type: Object,
   })
-  @IsNumber()
   @IsOptional()
-  peso?: number;
+  otros_detalles?: Record<string, any>;
 
-  @ApiPropertyOptional({
-    description: 'Temperatura del animal en grados Celsius',
-    example: 38.5,
-    type: Number,
+  @ApiProperty({
+    description: 'Servicio asociado al detalle',
+    type: () => Servicio,
+    example: { id_servicio: 'serv123'},
   })
-  @IsNumber()
-  @IsOptional()
-  temperatura?: number;
+  @IsNotEmpty()
+  id_servicio: DeepPartial<Servicio>;
 
-  @ApiPropertyOptional({
-    description: 'Frecuencia cardíaca del animal en latidos por minuto',
-    example: 120,
-    type: Number,
+  @ApiProperty({
+    description: 'Veterinario responsable',
+    type: () => Usuario,
+    example: { id_usuario: 'vet123'},
   })
-  @IsNumber()
-  @IsOptional()
-  frecuencia_cardiaca?: number;
-  
+  @IsNotEmpty()
+  id_veterinario: DeepPartial<Usuario>;
 }

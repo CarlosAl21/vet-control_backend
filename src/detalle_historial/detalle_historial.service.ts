@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DetalleHistorial } from './entities/detalle_historial.entity';
 import { Repository } from 'typeorm';
 import { HistorialesMedico } from 'src/historiales_medicos/entities/historiales_medico.entity';
+import { Servicio } from 'src/servicios/entities/servicio.entity';
+import { Usuario } from 'src/usuarios/entities/usuario.entity';
 
 @Injectable()
 export class DetalleHistorialService {
@@ -13,6 +15,10 @@ export class DetalleHistorialService {
     private readonly detalleHistorialRepository: Repository<DetalleHistorial>,
     @InjectRepository(HistorialesMedico)
     private readonly historialRepository: Repository<HistorialesMedico>,
+    @InjectRepository(Servicio)
+    private readonly servicioRepository: Repository<Servicio>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
   ) {}
 
   async create(createDetalleHistorialDto: CreateDetalleHistorialDto) {
@@ -23,10 +29,26 @@ export class DetalleHistorialService {
       if (!historial) {
         throw new Error('Historial no encontrado');
       }
-      const detalleHistorial = this.detalleHistorialRepository.create({
-        ...createDetalleHistorialDto,
-        id_historial: historial,
+      createDetalleHistorialDto.id_historial = historial;
+
+      const servicio = await this.servicioRepository.findOne({
+        where: { id_servicio: createDetalleHistorialDto.id_servicio.id_servicio },
       });
+      if (!servicio) {
+        throw new Error('Servicio no encontrado');
+      }
+      createDetalleHistorialDto.id_servicio = servicio;
+
+      const veterinario = await this.usuarioRepository.findOne({
+        where: { id_usuario: createDetalleHistorialDto.id_veterinario.id_usuario },
+      });
+      if (!veterinario) {
+        throw new Error('Veterinario no encontrado');
+      }
+      createDetalleHistorialDto.id_veterinario = veterinario;
+
+      const detalleHistorial = this.detalleHistorialRepository.create(createDetalleHistorialDto);
+      
       return await this.detalleHistorialRepository.save(detalleHistorial);
       
     } catch (error) {
@@ -87,6 +109,28 @@ export class DetalleHistorialService {
     } catch (error) {
       console.error('Error removing detalleHistorial:', error);
       throw new Error('Error al eliminar el detalle con el id: ' + id + ': ' + error.message);
+    }
+  }
+
+  async findByHistorialId(historialId: string) {
+    try {
+      const historial = await this.historialRepository.findOne({
+        where: { id_historial: historialId },
+      });
+      if (!historial) {
+        throw new Error('Historial not found');
+      }
+      const detalles = await this.detalleHistorialRepository.find({
+        where: { id_historial: historial },
+        relations: ['id_historial', 'id_servicio', 'id_veterinario'],
+      });
+      if (!detalles || detalles.length === 0) {
+        throw new Error('No detalles found for the given historialId');
+      } 
+      return detalles;
+    } catch (error) {
+      console.error('Error finding detalles by historialId:', error);
+      throw new Error('Error al encontrar los detalles del historial con el id: ' + historialId + ': ' + error.message);
     }
   }
 }

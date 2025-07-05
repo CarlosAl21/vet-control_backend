@@ -1,5 +1,9 @@
 import { HistorialesMedico } from 'src/historiales_medicos/entities/historiales_medico.entity';
+import { Servicio } from 'src/servicios/entities/servicio.entity';
+import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   Entity,
   JoinColumn,
@@ -20,30 +24,58 @@ export class DetalleHistorial {
   @JoinColumn({ name: 'id_historial' })
   id_historial: HistorialesMedico;
 
-  @Column({ type: 'date' })
-  fecha_registro: Date;
+  @Column({ type: 'date'})
+  fecha: Date;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  peso_kg: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  temperatura_c: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  frecuencia_cardiaca: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  frecuencia_respiratoria: number;
+
+  @Column({ type: 'varchar', length: 255 })
+  diagnostico: string;
 
   @Column({ type: 'varchar', length: 255 })
   tratamiento: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  medicamento: string;
-
-  @Column({ type: 'varchar', length: 100 })
-  dosis: string;
-
-  @Column({ type: 'varchar', length: 100 })
-  frecuencia: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255 })
   observaciones: string;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
-  peso: number;
+  @Column({ type: 'json', nullable: true })
+  otros_detalles: Record<string, any>;
 
-  @Column({ type: 'decimal', precision: 4, scale: 1, nullable: true })
-  temperatura: number;
+  @ManyToOne(() => Servicio, (servicio) => servicio.detalle_historial, { eager: true })
+  @JoinColumn({ name: 'id_servicio' })
+  id_servicio: Servicio;
 
-  @Column({ type: 'int', nullable: true })
-  frecuencia_cardiaca: number;
+  @ManyToOne(() => Usuario, (usuario) => usuario.detalle_historial, { eager: true })
+  @JoinColumn({ name: 'id_veterinario' })
+  id_veterinario: Usuario;
+
+  @Column({ type: 'timestamp'})
+  fecha_creacion: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  fecha_actualizacion: Date;
+
+  @BeforeInsert()
+  creacionFecha() {
+    this.fecha_creacion = new Date();
+    this.fecha = new Date();
+  }
+
+  @BeforeUpdate()
+  actualizacionFecha() {
+    this.fecha_actualizacion = new Date();
+  }
+
+
+  
 }

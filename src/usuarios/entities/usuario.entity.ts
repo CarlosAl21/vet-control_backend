@@ -6,6 +6,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Cliente } from 'src/clientes/entities/cliente.entity';
 import { IsOptional } from 'class-validator';
 import { Mascota } from 'src/mascotas/entities/mascota.entity';
+import { DetalleHistorial } from 'src/detalle_historial/entities/detalle_historial.entity';
 
 @Entity()
 export class Usuario {
@@ -36,6 +37,13 @@ export class Usuario {
     @ApiProperty({ example: 'hashed_password', description: 'Contraseña del usuario (encriptada)' })
     @Column({ type: 'varchar', length: 255 })
     contraseña: string;
+    @ApiProperty({ example: 'ea45qw845651qwd' , description: 'Token de restablecimiento de contraseña' })
+    @Column({ nullable: true })
+    resetPasswordToken?: string;
+
+    @ApiProperty({ example: '2023-10-01T12:00:00Z', description: 'Fecha de expiración del token de restablecimiento de contraseña' })
+    @Column({ type: 'timestamp', nullable: true })
+    resetPasswordExpires?: Date;
 
     @ApiProperty({ example: 'usuario', description: 'Rol del usuario' })
     @Column({ type: 'varchar', length: 50 })
@@ -57,6 +65,9 @@ export class Usuario {
 
     @OneToMany(() => Mascota, (mascota) => mascota.id_usuario)
     mascotas: Mascota[];
+    
+    @OneToMany(() => DetalleHistorial, (detalleHistorial) => detalleHistorial.id_veterinario)
+    detalle_historial: DetalleHistorial[];
 
     @BeforeInsert()
     async hashPassword() {

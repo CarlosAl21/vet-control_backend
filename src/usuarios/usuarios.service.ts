@@ -3,7 +3,7 @@ import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from './entities/usuario.entity';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import {
   BadRequestException,
@@ -11,6 +11,7 @@ import {
   NotFoundException,
   InternalServerErrorException,
 } from '@nestjs/common';
+
 
 @Injectable()
 export class UsuariosService {
@@ -40,6 +41,30 @@ export class UsuariosService {
     }
     return null;
   }
+
+  async saveResetToken(email: string, token: string) {
+  const usuario = await this.usuarioRepository.findOne({ where: { email } });
+  if (!usuario) return false;
+  usuario.resetPasswordToken = token;
+  usuario.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora de validez
+  await this.usuarioRepository.save(usuario);
+  return true;
+}
+
+async resetPasswordWithToken(token: string, newPassword: string) {
+  const usuario = await this.usuarioRepository.findOne({
+    where: {
+      resetPasswordToken: token,
+      resetPasswordExpires: MoreThan(new Date()),
+    },
+  });
+  if (!usuario) return false;
+  usuario.contraseña = await bcrypt.hash(newPassword, 10);
+  usuario.resetPasswordToken = null;
+  usuario.resetPasswordExpires = null;
+  await this.usuarioRepository.save(usuario);
+  return true;
+}
 
   async create(createUsuarioDto: CreateUsuarioDto) {
     console.log('Creando usuario:', createUsuarioDto);
