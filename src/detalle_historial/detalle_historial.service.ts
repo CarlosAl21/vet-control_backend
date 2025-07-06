@@ -120,10 +120,14 @@ export class DetalleHistorialService {
       if (!historial) {
         throw new Error('Historial not found');
       }
-      const detalles = await this.detalleHistorialRepository.find({
-        where: { id_historial: historial },
-        relations: ['id_historial', 'id_servicio', 'id_veterinario'],
-      });
+      const detalles = await this.detalleHistorialRepository
+        .createQueryBuilder('detalle')
+        .leftJoinAndSelect('detalle.id_historial', 'historial')
+        .leftJoinAndSelect('detalle.id_servicio', 'servicio')
+        .leftJoinAndSelect('detalle.id_veterinario', 'veterinario')
+        .where('historial.id_historial = :historialId', { historialId })
+        .getMany();
+      
       if (!detalles || detalles.length === 0) {
         throw new Error('No detalles found for the given historialId');
       } 
