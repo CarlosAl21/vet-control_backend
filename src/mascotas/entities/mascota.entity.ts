@@ -5,6 +5,7 @@ import { Column, Double, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGenera
 import { ApiProperty } from '@nestjs/swagger';
 import { Usuario } from "src/usuarios/entities/usuario.entity";
 import { Recordatorio } from "src/recordatorios/entities/recordatorio.entity";
+import { IsOptional } from "class-validator";
 
 @Entity()
 export class Mascota {
@@ -44,6 +45,7 @@ export class Mascota {
     @Column({ type: 'varchar', length: 100 })
     tamano: string;
 
+    @IsOptional()
     @ApiProperty({ example: '950098765432100', description: 'Numero de microchip'})
     @Column({type: 'varchar', length: 100})
     num_microchip_collar: string;
