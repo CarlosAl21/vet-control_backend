@@ -12,10 +12,13 @@ export class CreateServicioDto {
   @ApiProperty({
     example: 'consulta',
     description: 'Tipo del servicio',
-    enum: ['consulta', 'vacuna', 'cirugia', 'analitica', 'hospitalizacion', 'terapia'],
+    enum: ['consulta', 'vacunacion', 'diagnostico', 'cirugia', 'hospitalizacion', 'urgencias',
+  'medicina_preventiva', 'especialidades', 'odontologia', 'terapias', 'estetica'],
   })
-  @IsEnum(['consulta', 'vacuna', 'cirugia', 'analitica', 'hospitalizacion', 'terapia'])
-  tipo: 'consulta' | 'vacuna' | 'cirugia' | 'analitica' | 'hospitalizacion' | 'terapia';
+  @IsEnum(['consulta', 'vacunacion', 'diagnostico', 'cirugia', 'hospitalizacion', 'urgencias',
+  'medicina_preventiva', 'especialidades', 'odontologia', 'terapias', 'estetica'])
+  tipo: 'consulta' | 'vacunacion' | 'diagnostico' | 'cirugia' | 'hospitalizacion' | 'urgencias' |
+  'medicina_preventiva' | 'especialidades' | 'odontologia' | 'terapias' | 'estetica' 
 
   @ApiProperty({ example: 25.00, description: 'Precio del servicio' })
   @IsNumber()

@@ -16,10 +16,13 @@ export class Servicio {
     @ApiProperty({ 
         example: 'consulta', 
         description: 'Tipo del servicio', 
-        enum: ['consulta', 'vacuna', 'cirugia', 'analitica', 'hospitalizacion', 'terapia'] 
+        enum: ['consulta', 'vacunacion', 'diagnostico', 'cirugia', 'hospitalizacion', 'urgencias',
+        'medicina_preventiva', 'especialidades', 'odontologia', 'terapias', 'estetica'] 
     })
-    @Column({ type: 'enum', enum: ['consulta', 'vacuna', 'cirugia', 'analitica', 'hospitalizacion', 'terapia'] })
-    tipo: 'consulta' | 'vacuna' | 'cirugia' | 'analitica' | 'hospitalizacion' | 'terapia';
+    @Column({ type: 'enum', enum: ['consulta', 'vacunacion', 'diagnostico', 'cirugia', 'hospitalizacion', 'urgencias',
+    'medicina_preventiva', 'especialidades', 'odontologia', 'terapias', 'estetica', 'venta_productos'] })
+    tipo: 'consulta' | 'vacunacion' | 'diagnostico' | 'cirugia' | 'hospitalizacion' | 'urgencias' |
+    'medicina_preventiva' | 'especialidades' | 'odontologia' | 'terapias' | 'estetica';
 
     @ApiProperty({ example: 25.00, description: 'Precio del servicio' })
     @Column({ type: 'decimal', precision: 10, scale: 2 })

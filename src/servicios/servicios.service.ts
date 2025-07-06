@@ -86,16 +86,11 @@ export class ServiciosService {
 
   async findByEmpresa(empresaId: string) {
     try {
-      const empresa = await this.empresaRepository.findOne({
-        where: { id_empresa: empresaId },
-      });
-      if (!empresa) {
-        throw new Error(`Empresa con id ${empresaId} no encontrada`);
-      }
-      return this.servicioRepository.find({
-        where: { id_empresa: empresa },
-        relations: ['id_empresa'],
-      });
+      return this.servicioRepository
+        .createQueryBuilder('servicio')
+        .leftJoinAndSelect('servicio.id_empresa', 'empresa')
+        .where('empresa.id_empresa = :empresaId', { empresaId })
+        .getMany();
     } catch (error) {
       throw new Error(`Error al encontrar servicios de la empresa con id ${empresaId}: ${error.message}`);
     }

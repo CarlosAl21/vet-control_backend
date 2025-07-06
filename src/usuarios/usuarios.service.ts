@@ -127,43 +127,64 @@ async resetPasswordWithToken(token: string, newPassword: string) {
 
   async update(id: string, updateUsuarioDto: UpdateUsuarioDto) {
     try {
-    const usuario = await this.usuarioRepository.findOneBy({ id_usuario: id });
-    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+      const usuario = await this.usuarioRepository.findOneBy({ id_usuario: id });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-    if (updateUsuarioDto.email && !this.validarEmail(updateUsuarioDto.email)) {
-      throw new BadRequestException('El email no es válido');
-    }
+      if (updateUsuarioDto.email && !this.validarEmail(updateUsuarioDto.email)) {
+        throw new BadRequestException('El email no es válido');
+      }
 
-    if (updateUsuarioDto.contraseña) {
-    if (!updateUsuarioDto.currentPassword) {
-      throw new BadRequestException('La contraseña actual es requerida');
-    }
+      if (updateUsuarioDto.telefono && !this.validarTelefonoEcuador(updateUsuarioDto.telefono)) {
+        throw new BadRequestException('El teléfono no es válido');
+      }
 
-    const isPasswordValid = await bcrypt.compare(
-      updateUsuarioDto.currentPassword,
-      usuario.contraseña,
-    );
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Contraseña actual incorrecta');
-    }
+      // Preparar datos para actualizar, excluyendo currentPassword
+      let updateData: any = { ...updateUsuarioDto };
+      delete updateData.currentPassword; // Remover currentPassword de los datos de actualización
 
-    // Hashear la nueva contraseña
-    updateUsuarioDto.contraseña = await bcrypt.hash(updateUsuarioDto.contraseña, 10);
-  }
+      if (updateUsuarioDto.contraseña) {
+        if (!updateUsuarioDto.currentPassword) {
+          throw new BadRequestException('La contraseña actual es requerida');
+        }
 
-    let updateData:any = { ...updateUsuarioDto };
-    if (updateUsuarioDto.id_empresa) {
-      const empresa = await this.usuarioRepository.manager.findOne('Empresa', {
-        where: { id_empresa: updateUsuarioDto.id_empresa },
+        const isPasswordValid = await bcrypt.compare(
+          updateUsuarioDto.currentPassword,
+          usuario.contraseña,
+        );
+        if (!isPasswordValid) {
+          throw new UnauthorizedException('Contraseña actual incorrecta');
+        }
+
+        // Hashear la nueva contraseña
+        updateData.contraseña = await bcrypt.hash(updateUsuarioDto.contraseña, 10);
+      }
+
+      if (updateUsuarioDto.id_empresa) {
+        const empresa = await this.usuarioRepository.manager.findOne('Empresa', {
+          where: { id_empresa: updateUsuarioDto.id_empresa },
+        });
+        if (!empresa) throw new NotFoundException('Empresa no encontrada');
+        updateData.id_empresa = empresa;
+      }
+
+      // Realizar la actualización en la base de datos
+      await this.usuarioRepository.update(id, updateData);
+      
+      // Obtener el usuario actualizado para retornarlo (sin la contraseña)
+      const usuarioActualizado = await this.usuarioRepository.findOne({ 
+        where: { id_usuario: id }, 
+        relations: ['id_empresa'] 
       });
-      if (!empresa) throw new NotFoundException('Empresa no encontrada');
-      updateData.id_empresa = empresa;
-    }
-  } catch (error) {
+      
+      const { contraseña, ...rest } = usuarioActualizado;
+      return rest;
+
+    } catch (error) {
       console.error('Error al actualizar el usuario:', error);
       if (
         error instanceof NotFoundException ||
-        error instanceof BadRequestException
+        error instanceof BadRequestException ||
+        error instanceof UnauthorizedException
       ) {
         throw error;
       }
