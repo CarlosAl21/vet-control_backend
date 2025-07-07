@@ -23,37 +23,66 @@ export class DetalleHistorialService {
 
   async create(createDetalleHistorialDto: CreateDetalleHistorialDto) {
     try {
+      // Extraer el ID del historial del DTO
+      const historialId = typeof createDetalleHistorialDto.id_historial === 'string' 
+        ? createDetalleHistorialDto.id_historial 
+        : createDetalleHistorialDto.id_historial.id_historial;
+
+      console.log('ID del historial recibido:', historialId);
+
       const historial = await this.historialRepository.findOne({
-        where: { id_historial: createDetalleHistorialDto.id_historial.id_historial },
+        where: { id_historial: historialId },
       });
       if (!historial) {
-        throw new Error('Historial no encontrado');
+        throw new Error('Historial no encontrado con ID: ' + historialId);
       }
-      createDetalleHistorialDto.id_historial = historial;
+      console.log('Historial encontrado:', historial.id_historial);
+
+      // Extraer el ID del servicio del DTO
+      const servicioId = typeof createDetalleHistorialDto.id_servicio === 'string'
+        ? createDetalleHistorialDto.id_servicio
+        : createDetalleHistorialDto.id_servicio.id_servicio;
+
+      console.log('ID del servicio recibido:', servicioId);
 
       const servicio = await this.servicioRepository.findOne({
-        where: { id_servicio: createDetalleHistorialDto.id_servicio.id_servicio },
+        where: { id_servicio: servicioId },
       });
       if (!servicio) {
-        throw new Error('Servicio no encontrado');
+        throw new Error('Servicio no encontrado con ID: ' + servicioId);
       }
-      createDetalleHistorialDto.id_servicio = servicio;
+      console.log('Servicio encontrado:', servicio.id_servicio);
+
+      // Extraer el ID del veterinario del DTO
+      const veterinarioId = typeof createDetalleHistorialDto.id_veterinario === 'string'
+        ? createDetalleHistorialDto.id_veterinario
+        : createDetalleHistorialDto.id_veterinario.id_usuario;
+
+      console.log('ID del veterinario recibido:', veterinarioId);
 
       const veterinario = await this.usuarioRepository.findOne({
-        where: { id_usuario: createDetalleHistorialDto.id_veterinario.id_usuario },
+        where: { id_usuario: veterinarioId },
       });
       if (!veterinario) {
-        throw new Error('Veterinario no encontrado');
+        throw new Error('Veterinario no encontrado con ID: ' + veterinarioId);
       }
-      createDetalleHistorialDto.id_veterinario = veterinario;
+      console.log('Veterinario encontrado:', veterinario.id_usuario);
 
-      const detalleHistorial = this.detalleHistorialRepository.create(createDetalleHistorialDto);
+      // Crear el detalle con las entidades encontradas
+      const detalleData = {
+        ...createDetalleHistorialDto,
+        id_historial: historial,
+        id_servicio: servicio,
+        id_veterinario: veterinario,
+      };
+
+      const detalleHistorial = this.detalleHistorialRepository.create(detalleData);
       
       return await this.detalleHistorialRepository.save(detalleHistorial);
       
     } catch (error) {
       console.error('Error creating detalleHistorial:', error);
-      throw new Error('Error al crear el detalle'+ error.message);
+      throw new Error('Error al crear el detalle: ' + error.message);
     }
   }
 
@@ -114,20 +143,30 @@ export class DetalleHistorialService {
 
   async findByHistorialId(historialId: string) {
     try {
+      console.log('Buscando historial con ID:', historialId);
+      
       const historial = await this.historialRepository.findOne({
         where: { id_historial: historialId },
       });
       if (!historial) {
         throw new Error('Historial not found');
       }
-      const detalles = await this.detalleHistorialRepository.find({
-        where: { id_historial: historial },
-        relations: ['id_historial', 'id_servicio', 'id_veterinario'],
-      });
-      if (!detalles || detalles.length === 0) {
-        throw new Error('No detalles found for the given historialId');
-      } 
+      
+      console.log('Historial encontrado:', historial.id_historial);
+      
+      const detalles = await this.detalleHistorialRepository
+        .createQueryBuilder('detalle')
+        .leftJoinAndSelect('detalle.id_historial', 'historial')
+        .leftJoinAndSelect('detalle.id_servicio', 'servicio')
+        .leftJoinAndSelect('detalle.id_veterinario', 'veterinario')
+        .where('historial.id_historial = :historialId', { historialId })
+        .getMany();
+      
+      console.log('Detalles encontrados:', detalles.length);
+      
+      // Retornar un array vacío si no hay detalles
       return detalles;
+      
     } catch (error) {
       console.error('Error finding detalles by historialId:', error);
       throw new Error('Error al encontrar los detalles del historial con el id: ' + historialId + ': ' + error.message);
