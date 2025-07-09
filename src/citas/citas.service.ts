@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Cita } from './entities/cita.entity';
 import { Repository } from 'typeorm';
 import { MailService } from 'src/mail/mail.service';
+import { Usuario } from 'src/usuarios/entities/usuario.entity';
+import { Mascota } from 'src/mascotas/entities/mascota.entity';
 
 @Injectable()
 export class CitasService {
@@ -17,7 +19,19 @@ export class CitasService {
 
   async create(createCitaDto: CreateCitaDto) {
     try {
-      const nuevaCita = this.citaRepository.create(createCitaDto);
+      // Buscar entidades relacionadas
+      const usuario = await this.citaRepository.manager.findOne(Usuario, { where: { id_usuario: createCitaDto.usuarioId } });
+      const mascota = await this.citaRepository.manager.findOne(Mascota, { where: { id_mascota: createCitaDto.mascotaId } });
+
+      if (!usuario || !mascota) {
+        throw new NotFoundException('Usuario o mascota no encontrados');
+      }
+
+      const nuevaCita = this.citaRepository.create({
+        ...createCitaDto,
+        id_usuario: usuario,
+        id_mascota: mascota,
+      });
       const citaGuardada = await this.citaRepository.save(nuevaCita);
 
       // Enviar correo de confirmación al usuario
