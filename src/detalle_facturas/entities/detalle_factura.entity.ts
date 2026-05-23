@@ -18,11 +18,11 @@ export class DetalleFactura {
   cantidad: number;
 
   @ApiProperty({ example: 15.5, description: 'Precio unitario del producto' })
-  @Column('decimal')
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   precio_unitario: number;
 
   @ApiProperty({ example: 31.0, description: 'Subtotal del detalle de factura' })
-  @Column('decimal')
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   subtotal: number;
 
   @ApiProperty({ type: () => Factura, description: 'Factura asociada al detalle' })

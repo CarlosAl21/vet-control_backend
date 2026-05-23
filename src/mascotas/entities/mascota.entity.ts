@@ -30,8 +30,8 @@ export class Mascota {
     sexo: string;
 
     @ApiProperty({ example: '2018-05-20', description: 'Fecha de nacimiento de la mascota' })
-    @Column({ type: 'varchar', length: 50 })
-    fecha_nacimiento: string;
+    @Column({ type: 'date' })
+    fecha_nacimiento: Date;
 
     @ApiProperty({ example: 'Negro', description: 'Color de la mascota' })
     @Column({ type: 'varchar', length: 50 })
@@ -47,8 +47,8 @@ export class Mascota {
 
     @IsOptional()
     @ApiProperty({ example: '950098765432100', description: 'Numero de microchip'})
-    @Column({type: 'varchar', length: 100})
-    num_microchip_collar: string;
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    num_microchip_collar: string | null;
 
     @ApiProperty({ example: 'true', description:'Si la mascota esta eterilizada o no'})
     @Column({type: 'boolean', default: false})

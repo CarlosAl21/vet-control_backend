@@ -3,6 +3,13 @@ import { Usuario } from "src/usuarios/entities/usuario.entity";
 import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { ApiProperty } from '@nestjs/swagger';
 
+export enum EstadoCita {
+    PENDIENTE = 'Pendiente',
+    PROGRAMADA = 'Programada',
+    COMPLETADA = 'Completada',
+    CANCELADA = 'Cancelada',
+}
+
 @Entity()
 export class Cita {
     @ApiProperty({ example: 'uuid', description: 'Identificador único de la cita' })
@@ -17,9 +24,9 @@ export class Cita {
     @Column({type: 'varchar', length: 250})
     motivo: string;
 
-    @ApiProperty({ example: 'Pendiente', description: 'Estado de la cita' })
-    @Column({type: 'varchar', length: 50})
-    estado: string;
+    @ApiProperty({ example: 'Pendiente', enum: EstadoCita, description: 'Estado de la cita' })
+    @Column({ type: 'enum', enum: EstadoCita, default: EstadoCita.PENDIENTE })
+    estado: EstadoCita;
 
     @ApiProperty({ type: () => Usuario, description: 'Usuario asociado a la cita' })
     @ManyToOne(() => Usuario, usuario => usuario.citas)
@@ -33,7 +40,7 @@ export class Cita {
 
     @BeforeInsert()
     setEstado() {
-        this.estado = 'Pendiente';
+        this.estado = EstadoCita.PENDIENTE;
     }
 
     

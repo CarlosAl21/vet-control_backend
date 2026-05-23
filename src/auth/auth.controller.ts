@@ -2,8 +2,10 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Post,
   Request,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -24,8 +26,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  // @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Registrar un nuevo usuario' })
+  @ApiOperation({ summary: 'Registrar un nuevo usuario — el rol siempre se asigna como "usuario"' })
   @ApiBody({
     schema: {
       type: 'object',
@@ -36,7 +37,7 @@ export class AuthController {
         contraseña: { type: 'string', example: '123456' },
         telefono: { type: 'string', example: '1234567890' },
         direccion: { type: 'string', example: 'Calle Falsa 123' },
-        id_empresa: { type: 'string', example: 'empresa-id-123' }, // Si quieres mostrar solo id, cambiar a string
+        id_empresa: { type: 'string', example: 'empresa-id-123' },
       },
       required: ['nombre', 'apellido', 'email', 'contraseña', 'id_empresa'],
     },
@@ -51,10 +52,11 @@ export class AuthController {
       direccion: string;
       contraseña: string;
       id_empresa?: Empresa;
-      rol?: string;
     },
   ) {
-    return this.usuarioService.create(body);
+    // rol is intentionally excluded — the entity's @BeforeInsert sets it to 'usuario'
+    const { ...safeBody } = body;
+    return this.usuarioService.create(safeBody);
   }
 
   @Post('login')
@@ -75,7 +77,7 @@ export class AuthController {
       body.password,
     );
     if (!user) {
-      return { error: 'Usuario o contraseña incorrectos' };
+      throw new UnauthorizedException('Usuario o contraseña incorrectos');
     }
     return this.authService.login(user);
   }
@@ -91,7 +93,7 @@ export class AuthController {
     return { message: 'Sesión cerrada correctamente' };
   }
 
-  @Post('Profile')
+  @Get('Profile')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Obtener perfil del usuario autenticado' })
   getProfile(@Request() req) {

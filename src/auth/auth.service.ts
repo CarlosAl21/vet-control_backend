@@ -56,13 +56,24 @@ export class AuthService {
         try {
             const payload = { username: user.nombre, sub: user.id_usuario, rol: user.rol };
             const token = this.jwtService.sign(payload);
-            // Guardar sesión en la lista de sesiones activas
+
             if (!this.activeSessions.has(user.id_usuario)) {
                 this.activeSessions.set(user.id_usuario, []);
             }
             this.activeSessions.get(user.id_usuario)?.push(token);
 
-            return { access_token: token };
+            return {
+                access_token: token,
+                user: {
+                    id_usuario: user.id_usuario,
+                    nombre: user.nombre,
+                    apellido: user.apellido,
+                    email: user.email,
+                    rol: user.rol,
+                    telefono: user.telefono ?? null,
+                    direccion: user.direccion ?? null,
+                },
+            };
         } catch (error) {
             console.error('Error al iniciar sesión:', error);
             throw new InternalServerErrorException('Error al iniciar sesión');

@@ -15,7 +15,7 @@ import { ApiProperty } from '@nestjs/swagger';
     fecha_emision: Date;
   
     @ApiProperty({ example: 150.75, description: 'Total de la factura' })
-    @Column({ type: 'decimal' })
+    @Column({ type: 'decimal', precision: 10, scale: 2 })
     total: number;
   
     @ApiProperty({ example: 'Efectivo', description: 'Método de pago utilizado' })

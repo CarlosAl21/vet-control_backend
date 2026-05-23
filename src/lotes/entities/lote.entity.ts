@@ -5,6 +5,13 @@ import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 
+export enum EstadoLote {
+    ACTIVO = 'activo',
+    INACTIVO = 'inactivo',
+    VENCIDO = 'vencido',
+    AGOTADO = 'agotado',
+}
+
 @Entity('lotes')
 export class Lote {
   @ApiProperty({ example: 'uuid', description: 'Identificador único del lote' })
@@ -12,7 +19,7 @@ export class Lote {
   id_lote: string;
 
   @ApiProperty({ example: 'LT-2024-001', description: 'Código del lote' })
-  @Column()
+  @Column({ unique: true })
   codigo_lote: string;
 
   @ApiProperty({ example: '2024-06-01', description: 'Fecha de entrada del lote' })
@@ -27,9 +34,9 @@ export class Lote {
   @Column()
   stock_actual: number;
 
-  @ApiProperty({ example: 'activo', description: 'Estado del lote' })
-  @Column()
-  estado: string;
+  @ApiProperty({ example: 'activo', enum: EstadoLote, description: 'Estado del lote' })
+  @Column({ type: 'enum', enum: EstadoLote, default: EstadoLote.ACTIVO })
+  estado: EstadoLote;
 
   @ApiProperty({ type: () => [DetalleFactura], description: 'Detalles de factura asociados al lote' })
   @OneToMany(()=> DetalleFactura, (detalleFactura) => detalleFactura.id_lote)

@@ -109,6 +109,7 @@ export class MascotasController {
   }
 
   @Get('owner/:id')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Obtener todas las mascotas de un usuario por su ID' })
   @ApiParam({ name: 'id', description: 'ID del usuario (dueño) de las mascotas', example: 'user123xyz' })
   @ApiResponse({

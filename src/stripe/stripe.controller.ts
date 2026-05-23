@@ -1,5 +1,6 @@
-import { Controller, Post, Body, InternalServerErrorException, Get, Param, Headers, RawBodyRequest, Req } from '@nestjs/common';
+import { Controller, Post, Body, InternalServerErrorException, Get, Param, Headers, RawBodyRequest, Req, UseGuards } from '@nestjs/common';
 import { StripeService } from './stripe.service';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Request } from 'express';
 import { 
   PaymentSheetParams, 
@@ -13,6 +14,7 @@ export class StripeController {
   constructor(private readonly stripeService: StripeService) {}
 
   // Endpoint principal para Payment Sheet (Expo/React Native)
+  @UseGuards(JwtAuthGuard)
   @Post('payment-sheet')
   async createPaymentSheet(@Body() createPaymentSheetDto: CreatePaymentSheetDto): Promise<PaymentSheetParams> {
     const { amount, currency, customerEmail, customerId } = createPaymentSheetDto;
@@ -35,6 +37,7 @@ export class StripeController {
   }
 
   // Endpoint legacy para Payment Intent (compatibilidad)
+  @UseGuards(JwtAuthGuard)
   @Post('create-payment-intent')
   async createPaymentIntent(@Body() createPaymentDto: CreatePaymentIntentDto) {
     const { amount, currency } = createPaymentDto;
@@ -54,6 +57,7 @@ export class StripeController {
   }
 
   // Endpoint para Checkout Session (Web)
+  @UseGuards(JwtAuthGuard)
   @Post('create-checkout-session')
   async createCheckoutSession(@Body() body: CreateCheckoutSessionDto) {
     try {
@@ -69,6 +73,7 @@ export class StripeController {
   }
 
   // Endpoint para obtener información de un pago
+  @UseGuards(JwtAuthGuard)
   @Get('payment-intent/:id')
   async getPaymentIntent(@Param('id') paymentIntentId: string) {
     try {
@@ -87,6 +92,7 @@ export class StripeController {
   }
 
   // Endpoint para crear un customer
+  @UseGuards(JwtAuthGuard)
   @Post('create-customer')
   async createCustomer(@Body() body: { email: string; name?: string; phone?: string }) {
     const { email, name, phone } = body;

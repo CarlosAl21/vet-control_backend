@@ -12,11 +12,11 @@ export class HistorialesMedico {
     id_historial: string;
 
     @ApiProperty({ example: '2024-06-01', description: 'Fecha del historial médico' })
-    @Column({ type: 'varchar', length: 50 })
-    fecha: string;
+    @Column({ type: 'date' })
+    fecha: Date;
 
     @ApiProperty({ example: 'Gripe canina', description: 'Diagnóstico realizado' })
-    @Column({ type: 'varchar', length: 50 })
+    @Column({ type: 'varchar', length: 500 })
     diagnostico: string;
 
     @ApiProperty({ type: () => Mascota, description: 'Mascota asociada al historial médico' })

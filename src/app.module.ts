@@ -89,7 +89,6 @@ import { Servicio } from './servicios/entities/servicio.entity';
     LotesModule,
     ProveedoresModule,
     EmpresasModule,
-    LotesModule,
     StripeModule,
     CloudinaryModule,
     MailModule,
