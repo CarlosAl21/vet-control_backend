@@ -1,14 +1,15 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import Stripe from 'stripe';
 import { PaymentSheetParams } from './types/stripe.types';
+import { FacturasService } from 'src/facturas/facturas.service';
 
 @Injectable()
 export class StripeService {
   private readonly stripe: Stripe;
 
-  constructor() {
+  constructor(private readonly facturasService: FacturasService) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2025-04-30.basil', // Usar la versión compatible
+      apiVersion: '2025-04-30.basil',
     });
   }
 
@@ -18,6 +19,7 @@ export class StripeService {
     currency: string,
     customerEmail?: string,
     customerId?: string,
+    invoiceId?: string,
   ): Promise<PaymentSheetParams> {
     try {
       // 1. Crear o recuperar el Customer
@@ -64,6 +66,7 @@ export class StripeService {
           source: 'VetControl App',
           customerEmail: customerEmail || 'guest',
           timestamp: new Date().toISOString(),
+          ...(invoiceId && { invoiceId }),
         },
       });
 
@@ -146,7 +149,7 @@ export class StripeService {
   }
 
   // Método específico para aplicaciones web - Checkout Session
-  async createCheckoutSession(body: { amount: number; currency: string; successUrl?: string; cancelUrl?: string }) {
+  async createCheckoutSession(body: { amount: number; currency: string; invoiceId?: string; successUrl?: string; cancelUrl?: string }) {
     try {
       const session = await this.stripe.checkout.sessions.create({
         payment_method_types: ['card'],
@@ -161,12 +164,13 @@ export class StripeService {
           },
         ],
         mode: 'payment',
-        success_url: body.successUrl || 'http://localhost:4200/success',
-        cancel_url: body.cancelUrl || 'http://localhost:4200/cancel',
+        success_url: body.successUrl || process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/success` : 'http://localhost:4200/success',
+        cancel_url: body.cancelUrl || process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/cancel` : 'http://localhost:4200/cancel',
         metadata: {
           source: 'VetControl Web',
           platform: 'web',
           timestamp: new Date().toISOString(),
+          ...(body.invoiceId && { invoiceId: body.invoiceId }),
         },
       });
       return session;
@@ -209,6 +213,34 @@ export class StripeService {
       console.error('Error obteniendo payment intent:', error);
       throw new InternalServerErrorException('No se pudo obtener la información del pago');
     }
+  }
+
+  async handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+    const invoiceId = paymentIntent.metadata?.invoiceId;
+    if (!invoiceId) return;
+
+    const id = parseInt(invoiceId, 10);
+    if (isNaN(id)) return;
+
+    await this.facturasService.update(id, {
+      id_factura: id,
+      estado: 'pagado',
+      metodo_pago: 'Stripe',
+    });
+  }
+
+  async handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
+    const invoiceId = session.metadata?.invoiceId;
+    if (!invoiceId) return;
+
+    const id = parseInt(invoiceId, 10);
+    if (isNaN(id)) return;
+
+    await this.facturasService.update(id, {
+      id_factura: id,
+      estado: 'pagado',
+      metodo_pago: 'Stripe',
+    });
   }
 
   // Método para crear un customer permanente

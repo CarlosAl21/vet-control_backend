@@ -10,6 +10,7 @@ export interface PaymentSheetParams {
 export interface CreatePaymentSheetDto {
   amount: number;
   currency: string;
+  invoiceId?: string;
   customerEmail?: string;
   customerId?: string;
 }
@@ -22,6 +23,7 @@ export interface CreatePaymentIntentDto {
 export interface CreateCheckoutSessionDto {
   amount: number;
   currency: string;
+  invoiceId?: string;
   successUrl?: string;
   cancelUrl?: string;
 }

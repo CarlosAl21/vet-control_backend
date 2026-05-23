@@ -17,9 +17,8 @@ export class StripeController {
   @UseGuards(JwtAuthGuard)
   @Post('payment-sheet')
   async createPaymentSheet(@Body() createPaymentSheetDto: CreatePaymentSheetDto): Promise<PaymentSheetParams> {
-    const { amount, currency, customerEmail, customerId } = createPaymentSheetDto;
+    const { amount, currency, customerEmail, customerId, invoiceId } = createPaymentSheetDto;
 
-    // Validación de los parámetros requeridos
     if (!amount || !currency) {
       throw new InternalServerErrorException('Faltan parámetros requeridos: amount y currency');
     }
@@ -29,7 +28,7 @@ export class StripeController {
     }
 
     try {
-      return await this.stripeService.createPaymentSheet(amount, currency, customerEmail, customerId);
+      return await this.stripeService.createPaymentSheet(amount, currency, customerEmail, customerId, invoiceId);
     } catch (error) {
       console.error('Error creando Payment Sheet:', error);
       throw new InternalServerErrorException('Error al crear el Payment Sheet');
@@ -114,24 +113,24 @@ export class StripeController {
     }
   }
 
-  // Webhook endpoint para eventos de Stripe
+  // Webhook endpoint para eventos de Stripe (sin JwtAuthGuard — firmado por Stripe)
   @Post('webhook')
   async handleWebhook(@Req() req: RawBodyRequest<Request>, @Headers('stripe-signature') signature: string) {
     try {
       const event = this.stripeService.validateWebhook(req.rawBody, signature);
-      
-      // Procesar diferentes tipos de eventos
+
       switch (event.type) {
         case 'payment_intent.succeeded':
-          console.log('Payment succeeded:', event.data.object);
-          // Aquí puedes agregar lógica para manejar pagos exitosos
+          await this.stripeService.handlePaymentSucceeded(event.data.object as any);
+          break;
+        case 'checkout.session.completed':
+          await this.stripeService.handleCheckoutCompleted(event.data.object as any);
           break;
         case 'payment_intent.payment_failed':
-          console.log('Payment failed:', event.data.object);
-          // Aquí puedes agregar lógica para manejar pagos fallidos
+          console.error('Payment failed:', (event.data.object as any).id);
           break;
         default:
-          console.log(`Unhandled event type ${event.type}`);
+          break;
       }
 
       return { received: true };
