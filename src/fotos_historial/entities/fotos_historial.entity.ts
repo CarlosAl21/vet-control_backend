@@ -13,7 +13,7 @@ export class FotosHistorial {
     @Column({ type: 'varchar', length: 255, nullable: true })
     public_id: string;
 
-    @ManyToOne(() => HistorialesMedico, (historial) => historial.fotos_historial,{eager: true})
+    @ManyToOne(() => HistorialesMedico, (historial) => historial.fotos_historial)
     @JoinColumn({ name: 'id_historial' })
     historial: HistorialesMedico;
 

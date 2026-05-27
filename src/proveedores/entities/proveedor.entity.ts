@@ -22,7 +22,7 @@ export class Proveedor {
     telefono: string; // Teléfono del proveedor
 
     @ApiProperty({ example: 'proveedor@email.com', description: 'Correo electrónico del proveedor' })
-    @Column({ type: 'varchar', length: 100 })
+    @Column({ type: 'varchar', length: 254 })
     email: string; // Correo electrónico del proveedor
 
     @ApiProperty({ type: () => Empresa, description: 'Empresa a la que pertenece el proveedor' })

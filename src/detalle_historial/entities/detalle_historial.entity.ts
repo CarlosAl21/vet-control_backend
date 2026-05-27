@@ -19,7 +19,6 @@ export class DetalleHistorial {
   @ManyToOne(
     () => HistorialesMedico,
     (historial) => historial.detalle_historial,
-    { eager: true },
   )
   @JoinColumn({ name: 'id_historial' })
   id_historial: HistorialesMedico;
@@ -51,11 +50,11 @@ export class DetalleHistorial {
   @Column({ type: 'json', nullable: true })
   otros_detalles: Record<string, any>;
 
-  @ManyToOne(() => Servicio, (servicio) => servicio.detalle_historial, { eager: true })
+  @ManyToOne(() => Servicio, (servicio) => servicio.detalle_historial)
   @JoinColumn({ name: 'id_servicio' })
   id_servicio: Servicio;
 
-  @ManyToOne(() => Usuario, (usuario) => usuario.detalle_historial, { eager: true })
+  @ManyToOne(() => Usuario, (usuario) => usuario.detalle_historial)
   @JoinColumn({ name: 'id_veterinario' })
   id_veterinario: Usuario;
 

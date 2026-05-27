@@ -88,7 +88,7 @@ export class DetalleHistorialService {
 
   findAll() {
     return this.detalleHistorialRepository.find({
-      relations: ['id_historial'],
+      relations: ['id_historial', 'id_servicio', 'id_veterinario'],
     });
   }
 
@@ -96,7 +96,7 @@ export class DetalleHistorialService {
     try {
       const detalleHistorial = await this.detalleHistorialRepository.findOne({
         where: { id_detalle_historial: id },
-        relations: ['id_historial'],
+        relations: ['id_historial', 'id_servicio', 'id_veterinario'],
       });
       if (!detalleHistorial) {
         throw new Error('DetalleHistorial not found');

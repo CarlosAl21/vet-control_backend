@@ -32,7 +32,7 @@ export class Empresa {
     telefono: string; // Teléfono de la empresa
 
     @ApiProperty({ example: 'empresa@email.com', description: 'Correo electrónico de la empresa' })
-    @Column({ type: 'varchar', length: 100 })
+    @Column({ type: 'varchar', length: 254 })
     email: string; // Correo electrónico de la empresa
 
     @ApiProperty({ example: '2023-01-01', description: 'Fecha de creación de la empresa' })

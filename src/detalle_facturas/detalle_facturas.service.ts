@@ -27,8 +27,10 @@ export class DetalleFacturaService {
       await this.lotesService.descontarStock(dto.id_lote.id_lote, dto.cantidad);
     }
 
+    const subtotal = dto.cantidad * dto.precio_unitario;
     const detalle = this.detalleRepo.create({
       ...dto,
+      subtotal,
       id_lote: dto.id_lote?.id_lote ? { id_lote: dto.id_lote.id_lote } as Lote : null,
     });
 
@@ -62,7 +64,9 @@ export class DetalleFacturaService {
       if (!detalle) {
         throw new NotFoundException('Detalle de factura no encontrado');
       }
-      this.detalleRepo.merge(detalle, dto);
+      const cantidad = dto.cantidad ?? detalle.cantidad;
+      const precio = dto.precio_unitario ?? detalle.precio_unitario;
+      this.detalleRepo.merge(detalle, { ...dto, subtotal: cantidad * precio });
       return await this.detalleRepo.save(detalle);
     } catch (error) {
       console.error('Error al actualizar el detalle de factura:', error);

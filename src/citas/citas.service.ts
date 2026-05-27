@@ -47,28 +47,31 @@ export class CitasService {
 
       return citaGuardada;
     } catch (error) {
-      console.error('Error creating cita:', error);
-      throw new InternalServerErrorException('Error creating cita');
+      console.error('Error al crear la cita:', error);
+      throw new InternalServerErrorException('Error al crear la cita');
     }
   }
 
-  findAll() {
-    return this.citaRepository.find({ relations: ['id_mascota', 'id_usuario'] });
+  findAll(empresaId: string) {
+    return this.citaRepository.find({
+      where: { id_usuario: { id_empresa: { id_empresa: empresaId } } },
+      relations: ['id_mascota', 'id_usuario'],
+    });
   }
 
   async findOne(id: string) {
     try {
       const cita = await this.citaRepository.findOne({ where: { id_cita: id }, relations: ['id_mascota', 'id_usuario'] });
       if (!cita) {
-        throw new NotFoundException('Cita not found');
+        throw new NotFoundException('Cita no encontrada');
       }
       return cita;
     } catch (error) {
-      console.error('Error finding cita:', error);
+      console.error('Error al buscar la cita:', error);
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new InternalServerErrorException('Error finding cita');
+      throw new InternalServerErrorException('Error al buscar la cita');
     }
   }
 
@@ -76,16 +79,16 @@ export class CitasService {
     try {
       const cita = await this.citaRepository.findOne({ where: { id_cita: id } });
       if (!cita) {
-        throw new NotFoundException('Cita not found');
+        throw new NotFoundException('Cita no encontrada');
       }
       this.citaRepository.merge(cita, updateCitaDto);
       return await this.citaRepository.save(cita);
     } catch (error) {
-      console.error('Error updating cita:', error);
+      console.error('Error al actualizar la cita:', error);
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new InternalServerErrorException('Error updating cita');
+      throw new InternalServerErrorException('Error al actualizar la cita');
     }
   }
 
@@ -93,15 +96,15 @@ export class CitasService {
     try {
       const cita = await this.citaRepository.findOne({ where: { id_cita: id } });
       if (!cita) {
-        throw new NotFoundException('Cita not found');
+        throw new NotFoundException('Cita no encontrada');
       }
       return await this.citaRepository.remove(cita);
     } catch (error) {
-      console.error('Error removing cita:', error);
+      console.error('Error al eliminar la cita:', error);
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new InternalServerErrorException('Error removing cita');
+      throw new InternalServerErrorException('Error al eliminar la cita');
     }
   }
 }

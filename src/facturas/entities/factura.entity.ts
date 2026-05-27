@@ -22,7 +22,7 @@ import { ApiProperty } from '@nestjs/swagger';
     @Column({ type: 'varchar', length: 50 })
     metodo_pago: string;
   
-    @ManyToOne(() => Cliente, cliente => cliente.facturas, { eager: true })
+    @ManyToOne(() => Cliente, cliente => cliente.facturas)
     @JoinColumn({ name: 'id_cliente' })
     cliente: Cliente;
 
@@ -32,7 +32,7 @@ import { ApiProperty } from '@nestjs/swagger';
     id_empresa: Empresa;
 
     @ApiProperty({ type: () => [DetalleFactura], description: 'Detalles de la factura' })
-    @OneToMany(() => DetalleFactura, (detalle) => detalle.id_factura, { eager: true})
+    @OneToMany(() => DetalleFactura, (detalle) => detalle.id_factura)
     detalles: DetalleFactura[];
 
     @Column({ type: 'enum', enum: ['pagado', 'pendiente', 'anulado', 'vencido'], default: 'pendiente' })
