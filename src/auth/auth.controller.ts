@@ -87,7 +87,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Cerrar sesión' })
   async logout(@Request() req) {
     await this.authService.logout(
-      req.user.email,
+      req.user.userId,
       req.headers.authorization.split(' ')[1],
     );
     return { message: 'Sesión cerrada correctamente' };

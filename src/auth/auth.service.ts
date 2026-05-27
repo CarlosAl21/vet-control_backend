@@ -1,42 +1,18 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
+import { Redis } from 'ioredis';
+import { REDIS_CLIENT } from 'src/redis/redis.provider';
+
+const SESSION_TTL_SECONDS = 86400; // 24 hours — align with JWT expiry
 
 @Injectable()
 export class AuthService {
-    private activeSessions = new Map<string, string[]>(); 
-
     constructor(
-        private usuarioService: UsuariosService ,
+        private usuarioService: UsuariosService,
         private jwtService: JwtService,
-    ) {
-        this.startTokenCleanup();
-    }
-
-    // Función para iniciar la limpieza automática
-    private startTokenCleanup() {
-        setInterval(() => {
-            console.log('Limpiando tokens expirados...');
-            // Recorremos el mapa y limpiamos los tokens expirados
-            for (const [id_usuario, tokens] of this.activeSessions.entries()) {
-                const validTokens = tokens.filter(token => {
-                    try {
-                        this.jwtService.verify(token); // Verificamos si el token está expirado
-                        return true; // Si el token es válido, lo mantenemos
-                    } catch (e) {
-                        console.log('Token expirado:', token);
-                        return false; // Si el token expiró, lo eliminamos
-                    }
-                });
-
-                if (validTokens.length > 0) {
-                    this.activeSessions.set(id_usuario, validTokens);
-                } else {
-                    this.activeSessions.delete(id_usuario); // Eliminar la entrada si no hay tokens válidos
-                }
-            }
-        }, 3600000); // Cada 1 hora (3600000 ms)
-    }
+        @Inject(REDIS_CLIENT) private redis: Redis,
+    ) {}
 
     async validateUser(email: string, pass: string): Promise<any> {
         try {
@@ -54,13 +30,18 @@ export class AuthService {
 
     async login(user: any) {
         try {
-            const payload = { username: user.nombre, sub: user.id_usuario, rol: user.rol };
+            const fullUser = await this.usuarioService.findOneWithEmpresa(user.id_usuario);
+            const payload = {
+                username: user.nombre,
+                sub: user.id_usuario,
+                rol: user.rol,
+                empresaId: fullUser?.id_empresa?.id_empresa ?? null,
+            };
             const token = this.jwtService.sign(payload);
 
-            if (!this.activeSessions.has(user.id_usuario)) {
-                this.activeSessions.set(user.id_usuario, []);
-            }
-            this.activeSessions.get(user.id_usuario)?.push(token);
+            const sessionKey = `sessions:${user.id_usuario}`;
+            await this.redis.sadd(sessionKey, token);
+            await this.redis.expire(sessionKey, SESSION_TTL_SECONDS);
 
             return {
                 access_token: token,
@@ -79,20 +60,13 @@ export class AuthService {
             throw new InternalServerErrorException('Error al iniciar sesión');
         }
     }
-    
-    async logout(id: string, token: string) {
+
+    async logout(id_usuario: string, token: string) {
         try {
-            const tokens = this.activeSessions.get(id);
-            if (tokens) {
-                this.activeSessions.set(id, tokens.filter(t => t !== token));
-            }
+            await this.redis.srem(`sessions:${id_usuario}`, token);
         } catch (error) {
             console.error('Error al cerrar sesión:', error);
             throw new InternalServerErrorException('Error al cerrar sesión');
         }
-    }
-
-    getActiveSessions() {
-        return this.activeSessions;
     }
 }

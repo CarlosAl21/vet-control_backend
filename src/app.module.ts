@@ -39,6 +39,7 @@ import { DetalleHistorial } from './detalle_historial/entities/detalle_historial
 import { RecordatoriosModule } from './recordatorios/recordatorios.module';
 import { ServiciosModule } from './servicios/servicios.module';
 import { Servicio } from './servicios/entities/servicio.entity';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -73,7 +74,7 @@ import { Servicio } from './servicios/entities/servicio.entity';
         options: `-c search_path=${process.env.DB_SCHEMA}`,
       },
       // ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
-      synchronize: true,
+      synchronize: false,
     }),
     ClientesModule,
     UsuariosModule,
@@ -96,6 +97,7 @@ import { Servicio } from './servicios/entities/servicio.entity';
     DetalleHistorialModule,
     RecordatoriosModule,
     ServiciosModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService],
