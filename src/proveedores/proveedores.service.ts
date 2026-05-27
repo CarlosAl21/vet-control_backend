@@ -21,8 +21,11 @@ export class ProveedoresService {
     }
   }
 
-  findAll() {
-    return this.proveedorRepository.find({ relations: ['id_empresa'] });
+  findAll(empresaId: string) {
+    return this.proveedorRepository.find({
+      where: { id_empresa: { id_empresa: empresaId } },
+      relations: ['id_empresa'],
+    });
   }
 
   async findOne(id: string) {

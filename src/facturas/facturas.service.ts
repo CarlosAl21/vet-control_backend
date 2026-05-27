@@ -50,8 +50,9 @@ export class FacturasService {
     return this.facturaRepository.save(nuevaFactura);
   }
 
-  findAll(): Promise<Factura[]> {
+  findAll(empresaId: string): Promise<Factura[]> {
     return this.facturaRepository.find({
+      where: { id_empresa: { id_empresa: empresaId } },
       relations: ['cliente', 'id_detalle_factura', 'id_usuario'],
     });
   }

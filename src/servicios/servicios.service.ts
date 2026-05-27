@@ -33,8 +33,9 @@ export class ServiciosService {
     }
   }
 
-  findAll() {
+  findAll(empresaId: string) {
     return this.servicioRepository.find({
+      where: { id_empresa: { id_empresa: empresaId } },
       relations: ['id_empresa'],
     });
   }

@@ -3,17 +3,20 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam, ApiBody } 
 import { CitasService } from './citas.service';
 import { CreateCitaDto } from './dto/create-cita.dto';
 import { UpdateCitaDto } from './dto/update-cita.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/enums/role.enum';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 
 @ApiTags('Citas')
-@ApiBearerAuth() // Indica que requiere autenticación JWT
+@ApiBearerAuth()
 @Controller('citas')
 export class CitasController {
   constructor(private readonly citasService: CitasService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Crear una nueva cita' })
   @ApiBody({ type: CreateCitaDto, description: 'Datos para crear una cita' })
   @ApiResponse({ status: 201, description: 'Cita creada correctamente.' })
@@ -23,15 +26,17 @@ export class CitasController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener todas las citas' })
   @ApiResponse({ status: 200, description: 'Lista de citas obtenida correctamente.' })
-  findAll() {
-    return this.citasService.findAll();
+  findAll(@CurrentUser() user: any) {
+    return this.citasService.findAll(user.empresaId);
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener una cita por ID' })
   @ApiParam({ name: 'id', description: 'ID de la cita', example: 'cita-1234abcd' })
   @ApiResponse({ status: 200, description: 'Cita encontrada.' })
@@ -41,7 +46,8 @@ export class CitasController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Actualizar una cita por ID' })
   @ApiParam({ name: 'id', description: 'ID de la cita a actualizar', example: 'cita-1234abcd' })
   @ApiBody({ type: UpdateCitaDto, description: 'Datos para actualizar la cita' })
@@ -53,7 +59,8 @@ export class CitasController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Eliminar una cita por ID' })
   @ApiParam({ name: 'id', description: 'ID de la cita a eliminar', example: 'cita-1234abcd' })
   @ApiResponse({ status: 200, description: 'Cita eliminada correctamente.' })

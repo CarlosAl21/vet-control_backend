@@ -1,8 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { RecordatoriosService } from './recordatorios.service';
 import { CreateRecordatorioDto } from './dto/create-recordatorio.dto';
 import { UpdateRecordatorioDto } from './dto/update-recordatorio.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/enums/role.enum';
 
 @ApiTags('Recordatorios')
 @Controller('recordatorios')
@@ -10,6 +14,8 @@ export class RecordatoriosController {
   constructor(private readonly recordatoriosService: RecordatoriosService) {}
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Crear un nuevo recordatorio' })
   @ApiBody({
     description: 'Datos para crear un recordatorio',
@@ -34,6 +40,8 @@ export class RecordatoriosController {
   }
 
   @Get()
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener todos los recordatorios' })
   @ApiResponse({ status: 200, description: 'Listado de recordatorios.' })
   findAll() {
@@ -41,6 +49,8 @@ export class RecordatoriosController {
   }
 
   @Get(':id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener un recordatorio por ID' })
   @ApiParam({ name: 'id', description: 'ID del recordatorio', example: 'recor123' })
   @ApiResponse({ status: 200, description: 'Recordatorio encontrado.' })
@@ -50,6 +60,8 @@ export class RecordatoriosController {
   }
 
   @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Actualizar un recordatorio por ID' })
   @ApiParam({ name: 'id', description: 'ID del recordatorio a actualizar', example: 'recor123' })
   @ApiBody({
@@ -75,6 +87,8 @@ export class RecordatoriosController {
   }
 
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Eliminar un recordatorio por ID' })
   @ApiParam({ name: 'id', description: 'ID del recordatorio a eliminar', example: 'recor123' })
   @ApiResponse({ status: 200, description: 'Recordatorio eliminado correctamente.' })
@@ -84,6 +98,7 @@ export class RecordatoriosController {
   }
 
   @Get('mascota/:id_mascota')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Obtener recordatorios por ID de mascota' })
   @ApiParam({ name: 'id_mascota', description: 'ID de la mascota', example: 'mascota123' })
   @ApiResponse({ status: 200, description: 'Listado de recordatorios para la mascota.' })

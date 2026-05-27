@@ -2,8 +2,11 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@n
 import { MascotasService } from './mascotas.service';
 import { CreateMascotaDto } from './dto/create-mascota.dto';
 import { UpdateMascotaDto } from './dto/update-mascota.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/enums/role.enum';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import {
   ApiTags,
   ApiOperation,
@@ -14,13 +17,14 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Mascotas')
-@ApiBearerAuth() // Indica que usa autenticación Bearer (JWT)
+@ApiBearerAuth()
 @Controller('mascotas')
 export class MascotasController {
   constructor(private readonly mascotasService: MascotasService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO)
   @ApiOperation({ summary: 'Crear una nueva mascota' })
   @ApiResponse({ status: 201, description: 'Mascota creada correctamente' })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
@@ -50,15 +54,17 @@ export class MascotasController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener todas las mascotas' })
   @ApiResponse({ status: 200, description: 'Lista de mascotas' })
-  findAll() {
-    return this.mascotasService.findAll();
+  findAll(@CurrentUser() user: any) {
+    return this.mascotasService.findAll(user.empresaId);
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener una mascota por ID' })
   @ApiParam({ name: 'id', description: 'ID de la mascota' })
   @ApiResponse({ status: 200, description: 'Mascota encontrada' })
@@ -68,7 +74,8 @@ export class MascotasController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO)
   @ApiOperation({ summary: 'Actualizar una mascota existente' })
   @ApiParam({ name: 'id', description: 'ID de la mascota a actualizar' })
   @ApiResponse({ status: 200, description: 'Mascota actualizada correctamente' })
@@ -99,7 +106,8 @@ export class MascotasController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO)
   @ApiOperation({ summary: 'Eliminar una mascota por ID' })
   @ApiParam({ name: 'id', description: 'ID de la mascota a eliminar' })
   @ApiResponse({ status: 200, description: 'Mascota eliminada correctamente' })
@@ -171,5 +179,4 @@ export class MascotasController {
   findByUserEmail(@Param('email') email: string) {
     return this.mascotasService.findByUserEmail(email);
   }
-
 }

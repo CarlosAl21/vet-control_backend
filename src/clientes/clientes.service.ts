@@ -115,8 +115,11 @@ export class ClientesService {
     }
   }
 
-  findAll() {
-    return this.clienteRepository.find({ relations: ['id_empresa','id_usuario'] });
+  findAll(empresaId: string) {
+    return this.clienteRepository.find({
+      where: { id_empresa: { id_empresa: empresaId } },
+      relations: ['id_empresa', 'id_usuario'],
+    });
   }
 
   async findOne(id: string) {

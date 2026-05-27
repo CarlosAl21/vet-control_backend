@@ -35,11 +35,15 @@ export class UsuariosService {
   }
 
   async validateUser(email: string, pass: string): Promise<Usuario|any> {
-    const user = await this.usuarioRepository.findOne({ where: { email: email} });
+    const user = await this.usuarioRepository.findOne({ where: { email: email }, relations: ['id_empresa'] });
     if (user && (await bcrypt.compare(pass, user.contraseña))) {
       return user;
     }
     return null;
+  }
+
+  async findOneWithEmpresa(id: string): Promise<Usuario | null> {
+    return this.usuarioRepository.findOne({ where: { id_usuario: id }, relations: ['id_empresa'] });
   }
 
   async saveResetToken(email: string, token: string) {
@@ -103,8 +107,11 @@ async resetPasswordWithToken(token: string, newPassword: string) {
     }
   }
 
-  async findAll() {
-    const usuarios = await this.usuarioRepository.find({relations: ['id_empresa']});
+  async findAll(empresaId: string) {
+    const usuarios = await this.usuarioRepository.find({
+      where: { id_empresa: { id_empresa: empresaId } },
+      relations: ['id_empresa'],
+    });
     return usuarios.map(({ contraseña, ...rest}) => rest); // Excluir la contraseña del resultado;
   }
 

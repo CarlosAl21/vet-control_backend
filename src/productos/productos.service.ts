@@ -20,8 +20,11 @@ export class ProductosService {
     }
   }
 
-  findAll() {
-    return this.productoRepository.find({relations: ['id_subcategoria', 'id_empresa']});
+  findAll(empresaId: string) {
+    return this.productoRepository.find({
+      where: { id_empresa: { id_empresa: empresaId } },
+      relations: ['id_subcategoria', 'id_empresa'],
+    });
   }
 
   async findOne(id: string) {

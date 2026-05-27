@@ -2,8 +2,11 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@n
 import { HistorialesMedicosService } from './historiales_medicos.service';
 import { CreateHistorialesMedicoDto } from './dto/create-historiales_medico.dto';
 import { UpdateHistorialesMedicoDto } from './dto/update-historiales_medico.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/enums/role.enum';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 
 import {
   ApiTags,
@@ -21,7 +24,8 @@ export class HistorialesMedicosController {
   constructor(private readonly historialesMedicosService: HistorialesMedicosService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO)
   @ApiOperation({ summary: 'Crear un nuevo historial médico' })
   @ApiBody({ type: CreateHistorialesMedicoDto })
   @ApiResponse({ status: 201, description: 'Historial médico creado correctamente.' })
@@ -32,16 +36,18 @@ export class HistorialesMedicosController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener todos los historiales médicos' })
   @ApiResponse({ status: 200, description: 'Lista de historiales médicos.' })
   @ApiResponse({ status: 401, description: 'No autorizado.' })
-  findAll() {
-    return this.historialesMedicosService.findAll();
+  findAll(@CurrentUser() user: any) {
+    return this.historialesMedicosService.findAll(user.empresaId);
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener historial médico por ID' })
   @ApiParam({ name: 'id', description: 'ID del historial médico', example: 'hist123' })
   @ApiResponse({ status: 200, description: 'Historial médico encontrado.' })
@@ -52,7 +58,8 @@ export class HistorialesMedicosController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO)
   @ApiOperation({ summary: 'Actualizar historial médico por ID' })
   @ApiParam({ name: 'id', description: 'ID del historial médico a actualizar', example: 'hist123' })
   @ApiBody({ type: UpdateHistorialesMedicoDto })
@@ -65,7 +72,8 @@ export class HistorialesMedicosController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO)
   @ApiOperation({ summary: 'Eliminar historial médico por ID' })
   @ApiParam({ name: 'id', description: 'ID del historial médico a eliminar', example: 'hist123' })
   @ApiResponse({ status: 200, description: 'Historial médico eliminado correctamente.' })

@@ -3,8 +3,10 @@ import { LotesService } from './lotes.service';
 import { CreateLoteDto } from './dto/create-lote.dto';
 import { UpdateLoteDto } from './dto/update-lote.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/enums/role.enum';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 
 @ApiTags('Lotes')
 @Controller('lotes')
@@ -12,7 +14,8 @@ export class LotesController {
   constructor(private readonly lotesService: LotesService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Crear un nuevo lote' })
   @ApiBody({ type: CreateLoteDto })
   @ApiResponse({ status: 201, description: 'Lote creado correctamente.' })
@@ -22,15 +25,17 @@ export class LotesController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Obtener todos los lotes' })
   @ApiResponse({ status: 200, description: 'Lista de lotes.' })
-  findAll() {
-    return this.lotesService.findAll();
+  findAll(@CurrentUser() user: any) {
+    return this.lotesService.findAll(user.empresaId);
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Obtener un lote por ID' })
   @ApiParam({ name: 'id', description: 'ID del lote', example: 'lote123' })
   @ApiResponse({ status: 200, description: 'Lote encontrado.' })
@@ -40,7 +45,8 @@ export class LotesController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Actualizar un lote por ID' })
   @ApiParam({ name: 'id', description: 'ID del lote a actualizar', example: 'lote123' })
   @ApiBody({ type: UpdateLoteDto })
@@ -52,7 +58,8 @@ export class LotesController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Eliminar un lote por ID' })
   @ApiParam({ name: 'id', description: 'ID del lote a eliminar', example: 'lote123' })
   @ApiResponse({ status: 200, description: 'Lote eliminado correctamente.' })

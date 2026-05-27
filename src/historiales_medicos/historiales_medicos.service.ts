@@ -67,8 +67,11 @@ export class HistorialesMedicosService {
     }
   }
 
-  findAll() {
-    return this.historialesMedicoRepository.find({relations: ['id_mascota']});
+  findAll(empresaId: string) {
+    return this.historialesMedicoRepository.find({
+      where: { id_empresa: { id_empresa: empresaId } },
+      relations: ['id_mascota'],
+    });
   }
 
   async findOne(id: string) {

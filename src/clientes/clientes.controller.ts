@@ -2,18 +2,22 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@n
 import { ClientesService } from './clientes.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/enums/role.enum';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
 @ApiTags('Clientes')
-@ApiBearerAuth() // Indica que el endpoint usa Bearer JWT
+@ApiBearerAuth()
 @Controller('clientes')
 export class ClientesController {
   constructor(private readonly clientesService: ClientesService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Crear un nuevo cliente' })
   @ApiBody({
     description: 'Datos para crear un cliente',
@@ -22,7 +26,6 @@ export class ClientesController {
         summary: 'Ejemplo de cliente',
         value: {
           id_empresa: { id_empresa: 'abc123xyz' },
-          // El email se envía como query param o en el body, aquí como ejemplo:
           email: 'juan.perez@email.com'
         }
       }
@@ -33,21 +36,22 @@ export class ClientesController {
   create(
     @Body() body: { id_empresa: { id_empresa: string }, email: string }
   ) {
-    // Extrae el email y el resto del DTO
     const { email, ...createClienteDto } = body;
     return this.clientesService.create(createClienteDto, email);
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener todos los clientes' })
   @ApiResponse({ status: 200, description: 'Listado de clientes.' })
-  findAll() {
-    return this.clientesService.findAll();
+  findAll(@CurrentUser() user: any) {
+    return this.clientesService.findAll(user.empresaId);
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener un cliente por ID' })
   @ApiResponse({ status: 200, description: 'Cliente encontrado.' })
   @ApiResponse({ status: 404, description: 'Cliente no encontrado.' })
@@ -56,7 +60,8 @@ export class ClientesController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Actualizar un cliente por ID' })
   @ApiBody({
     description: 'Datos para actualizar un cliente',
@@ -77,7 +82,8 @@ export class ClientesController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Eliminar un cliente por ID' })
   @ApiResponse({ status: 200, description: 'Cliente eliminado correctamente.' })
   @ApiResponse({ status: 404, description: 'Cliente no encontrado.' })
@@ -86,7 +92,8 @@ export class ClientesController {
   }
 
   @Get('search/:email')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Buscar usuario por email' })
   @ApiResponse({ status: 200, description: 'Usuario encontrado.' })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
@@ -95,7 +102,8 @@ export class ClientesController {
   }
 
   @Get('mascotas/:id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener mascotas de un cliente por ID' })
   @ApiResponse({ status: 200, description: 'Mascotas encontradas.' })
   @ApiResponse({ status: 404, description: 'Cliente no encontrado.' })
@@ -113,7 +121,8 @@ export class ClientesController {
   }
 
   @Get('userEmail/:email/:empresaId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener cliente por email de usuario y empresa' })
   @ApiResponse({ status: 200, description: 'Cliente encontrado.' })
   @ApiResponse({ status: 404, description: 'Cliente no encontrado.' })

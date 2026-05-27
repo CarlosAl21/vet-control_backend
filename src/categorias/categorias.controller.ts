@@ -3,8 +3,9 @@ import { CategoriasService } from './categorias.service';
 import { CreateCategoriaDto } from './dto/create-categoria.dto';
 import { UpdateCategoriaDto } from './dto/update-categoria.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/enums/role.enum';
 
 @ApiTags('categorias')
 @ApiBearerAuth()
@@ -13,7 +14,8 @@ export class CategoriasController {
   constructor(private readonly categoriasService: CategoriasService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Crear una nueva categoría' })
   @ApiBody({ type: CreateCategoriaDto, description: 'Datos para crear la categoría' })
   @ApiResponse({ status: 201, description: 'Categoría creada correctamente.' })
@@ -23,7 +25,8 @@ export class CategoriasController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener todas las categorías' })
   @ApiResponse({ status: 200, description: 'Lista de categorías obtenida.' })
   findAll() {
@@ -31,7 +34,8 @@ export class CategoriasController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener una categoría por ID' })
   @ApiParam({ name: 'id', description: 'ID de la categoría', example: '123e4567-e89b-12d3-a456-426614174000' })
   @ApiResponse({ status: 200, description: 'Categoría encontrada.' })
@@ -41,7 +45,8 @@ export class CategoriasController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Actualizar una categoría por ID' })
   @ApiParam({ name: 'id', description: 'ID de la categoría a actualizar', example: '123e4567-e89b-12d3-a456-426614174000' })
   @ApiBody({ type: UpdateCategoriaDto, description: 'Datos para actualizar la categoría' })
@@ -53,7 +58,8 @@ export class CategoriasController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Eliminar una categoría por ID' })
   @ApiParam({ name: 'id', description: 'ID de la categoría a eliminar', example: '123e4567-e89b-12d3-a456-426614174000' })
   @ApiResponse({ status: 200, description: 'Categoría eliminada correctamente.' })

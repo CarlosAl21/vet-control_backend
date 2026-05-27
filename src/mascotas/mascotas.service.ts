@@ -26,8 +26,11 @@ export class MascotasService {
     }
   }
 
-  findAll() {
-    return this.mascotaRepository.find({relations: ['id_usuario']});
+  findAll(empresaId: string) {
+    return this.mascotaRepository.find({
+      where: { id_usuario: { id_empresa: { id_empresa: empresaId } } },
+      relations: ['id_usuario'],
+    });
   }
 
   async findOne(id: string) {

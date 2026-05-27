@@ -3,8 +3,9 @@ import { EmpresasService } from './empresas.service';
 import { CreateEmpresaDto } from './dto/create-empresa.dto';
 import { UpdateEmpresaDto } from './dto/update-empresa.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/enums/role.enum';
 
 @ApiTags('Empresas')
 @Controller('empresas')
@@ -12,7 +13,8 @@ export class EmpresasController {
   constructor(private readonly empresasService: EmpresasService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Crear una nueva empresa' })
   @ApiBody({ type: CreateEmpresaDto, description: 'Datos para crear una empresa' })
   @ApiResponse({ status: 201, description: 'Empresa creada exitosamente.' })
@@ -22,7 +24,8 @@ export class EmpresasController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Obtener todas las empresas' })
   @ApiResponse({ status: 200, description: 'Lista de empresas.' })
   findAll() {
@@ -30,7 +33,8 @@ export class EmpresasController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Obtener una empresa por su ID' })
   @ApiParam({ name: 'id', description: 'ID único de la empresa', example: 'abc123xyz' })
   @ApiResponse({ status: 200, description: 'Empresa encontrada.' })
@@ -40,7 +44,8 @@ export class EmpresasController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Actualizar una empresa por su ID' })
   @ApiParam({ name: 'id', description: 'ID único de la empresa', example: 'abc123xyz' })
   @ApiBody({ type: UpdateEmpresaDto, description: 'Datos para actualizar la empresa' })
@@ -52,7 +57,8 @@ export class EmpresasController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Eliminar una empresa por su ID' })
   @ApiParam({ name: 'id', description: 'ID único de la empresa', example: 'abc123xyz' })
   @ApiResponse({ status: 200, description: 'Empresa eliminada exitosamente.' })

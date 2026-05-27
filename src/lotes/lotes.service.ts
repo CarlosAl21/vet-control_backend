@@ -31,9 +31,12 @@ export class LotesService {
     }
   }
 
-  async findAll(): Promise<Lote[]> {
+  async findAll(empresaId: string): Promise<Lote[]> {
     try {
-      return await this.loteRepository.find({ relations: ['id_producto', 'id_proveedor', 'id_empresa'] });
+      return await this.loteRepository.find({
+        where: { id_empresa: { id_empresa: empresaId } },
+        relations: ['id_producto', 'id_proveedor', 'id_empresa'],
+      });
     } catch (error) {
       console.error('Error al obtener los lotes:', error);
       throw new InternalServerErrorException('Error al obtener los lotes');

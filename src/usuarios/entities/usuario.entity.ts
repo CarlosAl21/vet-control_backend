@@ -23,7 +23,7 @@ export class Usuario {
     apellido: string;
 
     @ApiProperty({ example: 'juan.perez@email.com', description: 'Correo electrónico del usuario' })
-    @Column({ type: 'varchar', length: 50, unique: true })
+    @Column({ type: 'varchar', length: 254, unique: true })
     email: string;
 
     @ApiProperty({ example: '0987654321', description: 'Número de teléfono del usuario' })

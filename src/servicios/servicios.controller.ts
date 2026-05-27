@@ -1,8 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { ServiciosService } from './servicios.service';
 import { CreateServicioDto } from './dto/create-servicio.dto';
 import { UpdateServicioDto } from './dto/update-servicio.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/enums/role.enum';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 
 @ApiTags('Servicios')
 @Controller('servicios')
@@ -10,6 +14,8 @@ export class ServiciosController {
   constructor(private readonly serviciosService: ServiciosService) {}
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Crear un nuevo servicio' })
   @ApiBody({
     description: 'Datos para crear un servicio',
@@ -33,13 +39,17 @@ export class ServiciosController {
   }
 
   @Get()
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener todos los servicios' })
   @ApiResponse({ status: 200, description: 'Listado de servicios.' })
-  findAll() {
-    return this.serviciosService.findAll();
+  findAll(@CurrentUser() user: any) {
+    return this.serviciosService.findAll(user.empresaId);
   }
 
   @Get(':id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener un servicio por ID' })
   @ApiParam({ name: 'id', description: 'ID del servicio', example: 'servicio123' })
   @ApiResponse({ status: 200, description: 'Servicio encontrado.' })
@@ -49,6 +59,8 @@ export class ServiciosController {
   }
 
   @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Actualizar un servicio por ID' })
   @ApiParam({ name: 'id', description: 'ID del servicio a actualizar', example: 'servicio123' })
   @ApiBody({
@@ -73,6 +85,8 @@ export class ServiciosController {
   }
 
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Eliminar un servicio por ID' })
   @ApiParam({ name: 'id', description: 'ID del servicio a eliminar', example: 'servicio123' })
   @ApiResponse({ status: 200, description: 'Servicio eliminado correctamente.' })
@@ -82,6 +96,8 @@ export class ServiciosController {
   }
 
   @Get('empresa/:id_empresa')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
   @ApiOperation({ summary: 'Obtener servicios por empresa' })
   @ApiParam({ name: 'id_empresa', description: 'ID de la empresa', example: 'empresa123' })
   @ApiResponse({ status: 200, description: 'Listado de servicios de la empresa.' })
