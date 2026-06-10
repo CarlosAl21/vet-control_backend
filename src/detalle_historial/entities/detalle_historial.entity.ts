@@ -38,13 +38,13 @@ export class DetalleHistorial {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   frecuencia_respiratoria: number;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'text' })
   diagnostico: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'text' })
   tratamiento: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'text' })
   observaciones: string;
 
   @Column({ type: 'json', nullable: true })

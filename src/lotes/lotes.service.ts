@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Lote } from './entities/lote.entity';
+import { EstadoLote, Lote } from './entities/lote.entity';
 import { CreateLoteDto } from './dto/create-lote.dto';
 import { UpdateLoteDto } from './dto/update-lote.dto';
 
@@ -17,7 +17,7 @@ export class LotesService {
       const now = new Date();
       const fechaVencimiento = new Date(dto.fecha_venc);
 
-      const estado = fechaVencimiento < now ? 'No disponible' : 'Disponible';
+      const estado = fechaVencimiento < now ? EstadoLote.VENCIDO : EstadoLote.ACTIVO;
 
       const lote = this.loteRepository.create({
         ...dto,
@@ -50,7 +50,7 @@ export class LotesService {
 
       const now = new Date();
       const vencido = new Date(lote.fecha_venc) < now;
-      const nuevoEstado = vencido ? 'No disponible' : 'Disponible';
+      const nuevoEstado = vencido ? EstadoLote.VENCIDO : EstadoLote.ACTIVO;
 
       if (lote.estado !== nuevoEstado) {
         lote.estado = nuevoEstado;
@@ -104,7 +104,7 @@ export class LotesService {
       }
 
       lote.stock_actual -= cantidad;
-      lote.estado = lote.stock_actual === 0 ? 'No disponible' : 'Disponible';
+      lote.estado = lote.stock_actual === 0 ? EstadoLote.AGOTADO : EstadoLote.ACTIVO;
 
       await this.loteRepository.save(lote);
     } catch (error) {

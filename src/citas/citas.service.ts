@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, InternalServerErrorException } from '@ne
 import { CreateCitaDto } from './dto/create-cita.dto';
 import { UpdateCitaDto } from './dto/update-cita.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Cita } from './entities/cita.entity';
+import { Cita, EstadoCita } from './entities/cita.entity';
 import { Repository } from 'typeorm';
 import { MailService } from 'src/mail/mail.service';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
@@ -27,12 +27,14 @@ export class CitasService {
         throw new NotFoundException('Usuario o mascota no encontrados');
       }
 
+      const { usuarioId, mascotaId, estado, ...restDto } = createCitaDto;
       const nuevaCita = this.citaRepository.create({
-        ...createCitaDto,
+        ...restDto,
+        estado: estado as EstadoCita,
         id_usuario: usuario,
         id_mascota: mascota,
       });
-      const citaGuardada = await this.citaRepository.save(nuevaCita);
+      const citaGuardada = await this.citaRepository.save(nuevaCita) as unknown as Cita;
 
       // Enviar correo de confirmación al usuario
       if (citaGuardada.id_usuario && citaGuardada.id_usuario.email) {
@@ -81,7 +83,7 @@ export class CitasService {
       if (!cita) {
         throw new NotFoundException('Cita no encontrada');
       }
-      this.citaRepository.merge(cita, updateCitaDto);
+      Object.assign(cita, updateCitaDto);
       return await this.citaRepository.save(cita);
     } catch (error) {
       console.error('Error al actualizar la cita:', error);

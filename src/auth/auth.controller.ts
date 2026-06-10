@@ -5,9 +5,11 @@ import {
   Get,
   Post,
   Request,
+  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
@@ -71,7 +73,10 @@ export class AuthController {
       required: ['email', 'password'],
     },
   })
-  async login(@Body() body: { email: string; password: string }) {
+  async login(
+    @Body() body: { email: string; password: string },
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const user = await this.usuarioService.validateUser(
       body.email,
       body.password,
@@ -79,17 +84,28 @@ export class AuthController {
     if (!user) {
       throw new UnauthorizedException('Usuario o contraseña incorrectos');
     }
-    return this.authService.login(user);
+    const loginResult = await this.authService.login(user);
+    res.cookie('access_token', loginResult.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    return { user: loginResult.user };
   }
 
   @Post('Logout')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Cerrar sesión' })
-  async logout(@Request() req) {
-    await this.authService.logout(
-      req.user.userId,
-      req.headers.authorization.split(' ')[1],
-    );
+  async logout(
+    @Request() req,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const token =
+      req.cookies?.access_token ??
+      req.headers.authorization?.split(' ')[1];
+    await this.authService.logout(req.user.userId, token);
+    res.clearCookie('access_token');
     return { message: 'Sesión cerrada correctamente' };
   }
 

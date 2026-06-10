@@ -5,7 +5,7 @@ import { DetalleFactura } from './entities/detalle_factura.entity';
 import { CreateDetalleFacturaDto } from './dto/create-detalle_factura.dto';
 import { UpdateDetalleFacturaDto } from './dto/update-detalle_factura.dto';
 import { LotesService } from 'src/lotes/lotes.service';
-import { Lote } from 'src/lotes/entities/lote.entity';
+import { EstadoLote, Lote } from 'src/lotes/entities/lote.entity';
 
 @Injectable()
 export class DetalleFacturaService {
@@ -20,7 +20,7 @@ export class DetalleFacturaService {
   async create(dto: CreateDetalleFacturaDto) {
     if (dto.id_lote?.id_lote) {
       const lote = await this.lotesRepository.findOne({ where: { id_lote: dto.id_lote.id_lote } });
-      if (!lote || lote.estado !== 'Disponible') {
+      if (!lote || lote.estado === EstadoLote.VENCIDO || lote.estado === EstadoLote.AGOTADO) {
         throw new BadRequestException('El producto no está disponible');
       }
 
