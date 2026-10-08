@@ -15,7 +15,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
-import { Empresa } from 'src/empresas/entities/empresa.entity';
+import { RegisterDto } from './dto/register.dto';
 import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { MailService } from 'src/mail/mail.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -38,36 +38,8 @@ export class AuthController {
 
   @Post('register')
   @ApiOperation({ summary: 'Registrar un nuevo usuario — el rol siempre se asigna como "usuario"' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        nombre: { type: 'string', example: 'Juan' },
-        apellido: { type: 'string', example: 'Perez' },
-        email: { type: 'string', example: 'usuario@mail.com' },
-        contraseña: { type: 'string', example: '123456' },
-        telefono: { type: 'string', example: '1234567890' },
-        direccion: { type: 'string', example: 'Calle Falsa 123' },
-        id_empresa: { type: 'string', example: 'empresa-id-123' },
-      },
-      required: ['nombre', 'apellido', 'email', 'contraseña', 'id_empresa'],
-    },
-  })
-  async register(
-    @Body()
-    body: {
-      nombre: string;
-      apellido: string;
-      email: string;
-      telefono: string;
-      direccion: string;
-      contraseña: string;
-      id_empresa?: Empresa;
-    },
-  ) {
-    // rol is intentionally excluded — the entity's @BeforeInsert sets it to 'usuario'
-    const { ...safeBody } = body;
-    return this.usuarioService.create(safeBody);
+  async register(@Body() body: RegisterDto) {
+    return this.usuarioService.create(body);
   }
 
   @Post('login')
