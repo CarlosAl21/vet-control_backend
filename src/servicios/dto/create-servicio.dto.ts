@@ -1,8 +1,6 @@
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString, IsEnum, IsOptional } from 'class-validator';
-import { Empresa } from 'src/empresas/entities/empresa.entity';
-import { DeepPartial } from 'typeorm';
 
 export class CreateServicioDto {
   @ApiProperty({ example: 'Consulta general', description: 'Nombre del servicio' })
@@ -33,7 +31,8 @@ export class CreateServicioDto {
   @IsOptional()
   duracion_min?: number;
 
-  @ApiProperty({ type: () => Empresa, description: 'Empresa (clínica) a la que pertenece el servicio' })
+  @ApiProperty({ example: 'uuid-empresa-1234', description: 'ID de la empresa (clínica) a la que pertenece el servicio' })
+  @IsString()
   @IsNotEmpty()
-  id_empresa: DeepPartial<Empresa>;
+  id_empresa: string;
 }

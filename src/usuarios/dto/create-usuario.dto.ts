@@ -1,7 +1,5 @@
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Empresa } from "src/empresas/entities/empresa.entity";
-import { DeepPartial } from "typeorm";
 import { Role } from "src/auth/enums/role.enum";
 
 export class CreateUsuarioDto {
@@ -59,7 +57,7 @@ export class CreateUsuarioDto {
     })
     @IsOptional()
     @IsString()
-    id_empresa?: DeepPartial<Empresa>; // Puede ser un string o una entidad Empresa, dependiendo de cómo se maneje la relación en tu aplicación
+    id_empresa?: string;
 
     @ApiPropertyOptional({
         example: Role.VETERINARIO,

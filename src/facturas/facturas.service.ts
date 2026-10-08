@@ -30,19 +30,14 @@ export class FacturasService {
   ) {}
 
   async create(createFacturaDto: CreateFacturaDto) {
-    const cliente = await this.clienteRepository.findOne({
-      where: { id_cliente: createFacturaDto.id_cliente.id_cliente },
-    });
-
-    if (!cliente) {
-      throw new NotFoundException('Cliente no encontrado');
-    }
+    const { id_cliente, ...rest } = createFacturaDto;
+    const cliente = await this.findCliente(id_cliente);
 
     // Usa el valor en minúsculas 'pendiente' para estado por defecto
     const estado = createFacturaDto.estado || 'pendiente';
 
     const nuevaFactura = this.facturaRepository.create({
-      ...createFacturaDto,
+      ...rest,
       cliente, // Aquí va cliente, no id_cliente
       estado,
     });
@@ -99,7 +94,11 @@ export class FacturasService {
       factura.estado = updateFacturaDto.estado;
     }
 
-    const facturaUpdate = this.facturaRepository.merge(factura, updateFacturaDto);
+    const { id_cliente, ...rest } = updateFacturaDto;
+    const facturaUpdate = this.facturaRepository.merge(factura, rest);
+    if (id_cliente) {
+      facturaUpdate.cliente = await this.findCliente(id_cliente);
+    }
     const facturaGuardada = await this.facturaRepository.save(facturaUpdate);
     console.log("Factura actualizada", facturaGuardada);
     console.log("Cliente con usuario:", facturaGuardada.cliente);
@@ -162,4 +161,14 @@ export class FacturasService {
     }
   }
     
+
+  private async findCliente(id_cliente: string): Promise<Cliente> {
+    const cliente = await this.clienteRepository.findOne({
+      where: { id_cliente },
+    });
+    if (!cliente) {
+      throw new NotFoundException('Cliente no encontrado');
+    }
+    return cliente;
+  }
 }

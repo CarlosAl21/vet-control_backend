@@ -27,22 +27,15 @@ export class HistorialesMedicosService {
   }
   async create(createHistorialesMedicoDto: CreateHistorialesMedicoDto, files?: Array<Multer.File>) {
     try {
-      const mascota = await this.mascotaRepository.findOne({ where: { id_mascota: createHistorialesMedicoDto.id_mascota.id_mascota } });
-      if (!mascota) {
-        throw new NotFoundException('Mascota no encontrada');
-      }
-      // Asignar la mascota al DTO
-      createHistorialesMedicoDto.id_mascota = mascota;
+      const { id_mascota, id_empresa, ...rest } = createHistorialesMedicoDto;
+      const mascota = await this.findMascota(id_mascota);
+      const empresa = await this.findEmpresa(id_empresa);
 
-      // Verificar si la empresa existe
-      const empresa = await this.empresaRepository.findOne({ where: { id_empresa: createHistorialesMedicoDto.id_empresa.id_empresa } });
-      if (!empresa) {
-        throw new NotFoundException('Empresa no encontrada');
-      }
-      // Asignar la empresa al DTO
-      createHistorialesMedicoDto.id_empresa = empresa;
-
-      const nuevoHistorial = this.historialesMedicoRepository.create(createHistorialesMedicoDto);
+      const nuevoHistorial = this.historialesMedicoRepository.create({
+        ...rest,
+        id_mascota: mascota,
+        id_empresa: empresa,
+      });
       const historialGuardado = await this.historialesMedicoRepository.save(nuevoHistorial);
 
       // Si hay archivos, subirlos a Cloudinary y crear los registros de fotos
@@ -63,6 +56,9 @@ export class HistorialesMedicosService {
       return historialGuardado;
     } catch (error) {
       console.error('Error al crear el historial medico:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Error al crear el historial medico');
     }
   }
@@ -96,7 +92,14 @@ export class HistorialesMedicosService {
       if (!historialMedico) {
         throw new NotFoundException('Historial medico no encontrado');
       }
-      this.historialesMedicoRepository.merge(historialMedico, updateHistorialesMedicoDto);
+      const { id_mascota, id_empresa, ...rest } = updateHistorialesMedicoDto;
+      this.historialesMedicoRepository.merge(historialMedico, rest);
+      if (id_mascota) {
+        historialMedico.id_mascota = await this.findMascota(id_mascota);
+      }
+      if (id_empresa) {
+        historialMedico.id_empresa = await this.findEmpresa(id_empresa);
+      }
       return await this.historialesMedicoRepository.save(historialMedico);
     } catch (error) {
       console.error('Error al actualizar el historial medico:', error);
@@ -143,5 +146,21 @@ export class HistorialesMedicosService {
       }
       throw new InternalServerErrorException('Error al buscar historiales por ID de mascota');
     }
+  }
+
+  private async findMascota(id_mascota: string): Promise<Mascota> {
+    const mascota = await this.mascotaRepository.findOne({ where: { id_mascota } });
+    if (!mascota) {
+      throw new NotFoundException('Mascota no encontrada');
+    }
+    return mascota;
+  }
+
+  private async findEmpresa(id_empresa: string): Promise<Empresa> {
+    const empresa = await this.empresaRepository.findOne({ where: { id_empresa } });
+    if (!empresa) {
+      throw new NotFoundException('Empresa no encontrada');
+    }
+    return empresa;
   }
 }

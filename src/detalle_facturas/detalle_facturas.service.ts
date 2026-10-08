@@ -18,20 +18,21 @@ export class DetalleFacturaService {
   ) {}
 
   async create(dto: CreateDetalleFacturaDto) {
-    if (dto.id_lote?.id_lote) {
-      const lote = await this.lotesRepository.findOne({ where: { id_lote: dto.id_lote.id_lote } });
+    const { id_lote, ...rest } = dto;
+    if (id_lote) {
+      const lote = await this.lotesRepository.findOne({ where: { id_lote } });
       if (!lote || lote.estado === EstadoLote.VENCIDO || lote.estado === EstadoLote.AGOTADO) {
         throw new BadRequestException('El producto no está disponible');
       }
 
-      await this.lotesService.descontarStock(dto.id_lote.id_lote, dto.cantidad);
+      await this.lotesService.descontarStock(id_lote, dto.cantidad);
     }
 
     const subtotal = dto.cantidad * dto.precio_unitario;
     const detalle = this.detalleRepo.create({
-      ...dto,
+      ...rest,
       subtotal,
-      id_lote: dto.id_lote?.id_lote ? { id_lote: dto.id_lote.id_lote } as Lote : null,
+      id_lote: id_lote ? { id_lote } as Lote : null,
     });
 
     return this.detalleRepo.save(detalle);
@@ -66,7 +67,15 @@ export class DetalleFacturaService {
       }
       const cantidad = dto.cantidad ?? detalle.cantidad;
       const precio = dto.precio_unitario ?? detalle.precio_unitario;
-      this.detalleRepo.merge(detalle, { ...dto, subtotal: cantidad * precio });
+      const { id_lote, ...rest } = dto;
+      this.detalleRepo.merge(detalle, { ...rest, subtotal: cantidad * precio });
+      if (id_lote) {
+        const lote = await this.lotesRepository.findOne({ where: { id_lote } });
+        if (!lote) {
+          throw new NotFoundException('Lote no encontrado');
+        }
+        detalle.id_lote = lote;
+      }
       return await this.detalleRepo.save(detalle);
     } catch (error) {
       console.error('Error al actualizar el detalle de factura:', error);

@@ -1,7 +1,6 @@
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { Cliente } from 'src/clientes/entities/cliente.entity';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
 
 export class CreateFacturaDto {
@@ -34,8 +33,9 @@ export class CreateFacturaDto {
     example: 'uuid-cliente-1234',
     description: 'ID del cliente asociado a la factura',
   })
+  @IsString()
   @IsNotEmpty()
-  id_cliente: Cliente;
+  id_cliente: string;
 
   @ApiProperty({
     example: 'uuid-empresa-5678',

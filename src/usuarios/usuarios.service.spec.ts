@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { Repository } from 'typeorm';
@@ -130,5 +130,41 @@ describe('UsuariosService token revocation', () => {
   it('UpdateUsuarioDto treats currentPassword as optional', async () => {
     const errors = await validate(plainToInstance(UpdateUsuarioDto, {}));
     expect(errors.map((e) => e.property)).toEqual([]);
+  });
+
+  describe('create relation ids', () => {
+    const dto = {
+      nombre: 'Ana',
+      apellido: 'Lopez',
+      email: 'ana@mail.com',
+      telefono: '0987654321',
+      direccion: 'Quito',
+      contraseña: 'Secret123',
+    };
+    let manager: { findOne: jest.Mock };
+
+    beforeEach(() => {
+      jest.spyOn(console, 'error').mockImplementation(() => undefined);
+      manager = { findOne: jest.fn() };
+      (repository as any).manager = manager;
+      (repository as any).create = jest.fn((data) => data);
+      repository.findOne.mockResolvedValue(null);
+    });
+
+    it('looks up the empresa by its plain string id', async () => {
+      manager.findOne.mockResolvedValue({ id_empresa: 'e-1' });
+
+      await service.create({ ...dto, id_empresa: 'e-1' });
+
+      expect(manager.findOne).toHaveBeenCalledWith('Empresa', { where: { id_empresa: 'e-1' } });
+    });
+
+    it('throws NotFoundException when the empresa does not exist', async () => {
+      manager.findOne.mockResolvedValue(null);
+
+      await expect(service.create({ ...dto, id_empresa: 'missing' })).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+    });
   });
 });

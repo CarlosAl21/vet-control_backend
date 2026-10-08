@@ -3,6 +3,7 @@ import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from './entities/usuario.entity';
+import { Empresa } from 'src/empresas/entities/empresa.entity';
 import { MoreThan, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import {
@@ -95,21 +96,18 @@ async resetPasswordWithToken(token: string, newPassword: string) {
       if (existingUser) {
         throw new ConflictException('El email ya está en uso');
       }
-      if(createUsuarioDto.email){
-      const empresa = await this.usuarioRepository.manager.findOne('Empresa', { where: { id_empresa: createUsuarioDto.id_empresa.id_empresa } });
-      
       if (createUsuarioDto.telefono && !this.validarTelefonoEcuador(createUsuarioDto.telefono)) {
         throw new BadRequestException('El teléfono no es válido');
       }
-      if (!empresa) {
-        throw new NotFoundException('Empresa no encontrada');
-      }
       const { id_empresa, ...rest } = createUsuarioDto;
-      const usuarioData = { ...rest, id_empresa: empresa };
-      const nuevoUsuario = this.usuarioRepository.create(usuarioData);
-      return await this.usuarioRepository.save(nuevoUsuario); 
-    }
-      const nuevoUsuario = this.usuarioRepository.create(createUsuarioDto);
+      let empresa: Empresa | undefined;
+      if (id_empresa) {
+        empresa = await this.usuarioRepository.manager.findOne<Empresa>('Empresa', { where: { id_empresa } });
+        if (!empresa) {
+          throw new NotFoundException('Empresa no encontrada');
+        }
+      }
+      const nuevoUsuario = this.usuarioRepository.create({ ...rest, id_empresa: empresa });
       return await this.usuarioRepository.save(nuevoUsuario);
       
     } catch (error) {

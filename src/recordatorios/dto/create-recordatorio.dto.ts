@@ -1,7 +1,5 @@
 import { IsEnum, IsNotEmpty, IsString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { DeepPartial } from "typeorm";
-import { Mascota } from "src/mascotas/entities/mascota.entity";
 
 export class CreateRecordatorioDto {
     @ApiProperty({ enum: ['vacuna', 'medicamento', 'desparacitacion'] })
@@ -29,7 +27,8 @@ export class CreateRecordatorioDto {
     @IsNotEmpty()
     completado: boolean;
 
-    @ApiProperty({ type: () => Mascota, description: 'ID de la mascota asociada al recordatorio' })
+    @ApiProperty({ example: 'uuid-mascota-1234', description: 'ID de la mascota asociada al recordatorio' })
+    @IsString()
     @IsNotEmpty()
-    id_mascota: DeepPartial<Mascota>;
+    id_mascota: string;
 }
