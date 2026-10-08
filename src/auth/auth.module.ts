@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { UsuariosModule } from 'src/usuarios/usuarios.module';
 import { JwtStrategy } from './jwt.strategy';
@@ -19,6 +20,8 @@ import { getJwtExpiresIn, getJwtSecret } from './jwt.config';
     UsuariosModule,
     MailModule,
     PassportModule,
+    // In-memory rate limiting; only applied where ThrottlerGuard is used (login, forgot-password)
+    ThrottlerModule.forRoot([{ name: 'auth', ttl: 60_000, limit: 5 }]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

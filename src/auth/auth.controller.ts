@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
@@ -70,6 +71,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @UseGuards(ThrottlerGuard)
   @ApiOperation({ summary: 'Iniciar sesión' })
   @ApiBody({
     schema: {
@@ -122,6 +124,7 @@ export class AuthController {
   }
 
   @Post('forgot-password')
+  @UseGuards(ThrottlerGuard)
   @ApiOperation({ summary: 'Solicitar restablecimiento de contraseña' })
   @ApiBody({
     schema: {
