@@ -9,20 +9,6 @@ export class AuthService {
         private jwtService: JwtService,
     ) {}
 
-    async validateUser(email: string, pass: string): Promise<any> {
-        try {
-            const user = await this.usuarioService.validateUser(email, pass);
-            if (user) {
-                const { password, ...result } = user;
-                return result;
-            }
-            return null;
-        } catch (error) {
-            console.error('Error al validar usuario:', error);
-            throw new InternalServerErrorException('Error al validar usuario');
-        }
-    }
-
     async login(user: any) {
         try {
             const fullUser = await this.usuarioService.findOneWithEmpresa(user.id_usuario);
