@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { HistorialesMedico } from 'src/historiales_medicos/entities/historiales_medico.entity';
@@ -19,6 +20,7 @@ export class CreateDetalleHistorialDto {
     example: 12.5,
     type: Number,
   })
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   peso_kg: number;
@@ -28,6 +30,7 @@ export class CreateDetalleHistorialDto {
     example: 38.5,
     type: Number,
   })
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   temperatura_c: number;
@@ -37,6 +40,7 @@ export class CreateDetalleHistorialDto {
     example: 120,
     type: Number,
   })
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   frecuencia_cardiaca: number;
@@ -46,6 +50,7 @@ export class CreateDetalleHistorialDto {
     example: 30,
     type: Number,
   })
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   frecuencia_respiratoria: number;

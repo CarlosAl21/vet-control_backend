@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { DeepPartial } from 'typeorm';
 import { Factura } from 'src/facturas/entities/factura.entity';
@@ -17,6 +18,7 @@ export class CreateDetalleFacturaDto {
     description: 'Cantidad de productos',
     example: 10,
   })
+  @Type(() => Number)
   @IsInt()
   @IsNotEmpty()
   cantidad: number;
@@ -25,6 +27,7 @@ export class CreateDetalleFacturaDto {
     description: 'Precio unitario del producto',
     example: 15.5,
   })
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   precio_unitario: number;
@@ -33,6 +36,7 @@ export class CreateDetalleFacturaDto {
     description: 'Subtotal (cantidad * precio unitario)',
     example: 155,
   })
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   subtotal: number;

@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString, IsEnum, IsOptional } from 'class-validator';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
@@ -21,11 +22,13 @@ export class CreateServicioDto {
   'medicina_preventiva' | 'especialidades' | 'odontologia' | 'terapias' | 'estetica' 
 
   @ApiProperty({ example: 25.00, description: 'Precio del servicio' })
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   precio: number;
 
   @ApiProperty({ example: 15, description: 'Duración estimada en minutos', required: false, default: 15 })
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   duracion_min?: number;

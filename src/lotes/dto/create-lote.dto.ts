@@ -1,3 +1,4 @@
+import { Type } from "class-transformer";
 import { IsDate, IsNotEmpty, IsNumber, IsString } from "class-validator";
 import { ApiProperty } from '@nestjs/swagger';
 import { Empresa } from "src/empresas/entities/empresa.entity";
@@ -17,6 +18,7 @@ export class CreateLoteDto {
     example: '2025-05-14T00:00:00.000Z',
     description: 'Fecha de entrada del lote',
   })
+  @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
   fecha_entrada: Date;
@@ -25,6 +27,7 @@ export class CreateLoteDto {
     example: '2026-05-14T00:00:00.000Z',
     description: 'Fecha de vencimiento del lote',
   })
+  @Type(() => Date)
   @IsDate()
   fecha_venc: Date;
 
@@ -32,6 +35,7 @@ export class CreateLoteDto {
     example: 100,
     description: 'Cantidad actual en stock',
   })
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   stock_actual: number;

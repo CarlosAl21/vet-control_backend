@@ -1,3 +1,4 @@
+import { Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, IsString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Empresa } from "src/empresas/entities/empresa.entity";
@@ -25,6 +26,7 @@ export class CreateProductoDto {
         example: 15.75,
         description: 'Precio unitario del producto',
     })
+    @Type(() => Number)
     @IsNumber()
     @IsNotEmpty()
     precio_unitario: number;

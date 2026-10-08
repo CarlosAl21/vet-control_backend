@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Cliente } from 'src/clientes/entities/cliente.entity';
@@ -16,6 +17,7 @@ export class CreateFacturaDto {
     example: 150.75,
     description: 'Total de la factura',
   })
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   total: number;

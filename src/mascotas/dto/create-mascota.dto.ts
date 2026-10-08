@@ -1,3 +1,4 @@
+import { Type } from "class-transformer";
 import { DeepPartial } from 'typeorm';
 import { IsNotEmpty, IsString, IsNumber, IsBoolean } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
@@ -56,6 +57,7 @@ export class CreateMascotaDto {
         example: 12.5,
         description: 'Peso actual de la mascota en kilogramos',
     })
+    @Type(() => Number)
     @IsNumber()
     @IsNotEmpty()
     peso_actual: number;
