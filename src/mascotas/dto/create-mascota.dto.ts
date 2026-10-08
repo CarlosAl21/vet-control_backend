@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { DeepPartial } from 'typeorm';
-import { IsNotEmpty, IsString, IsNumber, IsBoolean } from "class-validator";
+import { IsNotEmpty, IsString, IsNumber, IsBoolean, IsOptional } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 
@@ -65,18 +65,20 @@ export class CreateMascotaDto {
     @ApiProperty({
         example: 'Mediano',
         description: 'Tamaño de la mascota',
+        required: false,
     })
+    @IsOptional()
     @IsString()
-    @IsNotEmpty()
-    tamano: string;
+    tamano?: string;
 
     @ApiProperty({
         example: '950098765432100',
         description: 'Numero de microchip',
+        required: false,
     })
+    @IsOptional()
     @IsString()
-    @IsNotEmpty()
-    num_microchip_collar: string;
+    num_microchip_collar?: string;
 
     @ApiProperty({
         example: true,
