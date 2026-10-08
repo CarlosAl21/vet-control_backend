@@ -1,5 +1,5 @@
 import { DeepPartial } from 'typeorm';
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { Empresa } from "src/empresas/entities/empresa.entity";
 import { ApiProperty } from '@nestjs/swagger';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
@@ -32,4 +32,11 @@ export class CreateClienteDto {
     @ApiProperty({ type: () => Usuario, description: 'Cuenta de usuario vinculada (opcional)', required: false })
     @IsOptional()
     id_usuario?: DeepPartial<Usuario>;
+}
+
+export class CreateClienteRequestDto extends CreateClienteDto {
+    @ApiProperty({ example: 'juan.perez@email.com', description: 'Email de la cuenta de usuario del cliente' })
+    @IsEmail()
+    @IsNotEmpty()
+    email: string;
 }

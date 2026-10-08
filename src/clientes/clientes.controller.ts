@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { ClientesService } from './clientes.service';
-import { CreateClienteDto } from './dto/create-cliente.dto';
+import { CreateClienteRequestDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -36,7 +36,7 @@ export class ClientesController {
   @ApiResponse({ status: 201, description: 'Cliente creado correctamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
   create(
-    @Body() body: CreateClienteDto & { email: string }
+    @Body() body: CreateClienteRequestDto
   ) {
     const { email, ...createClienteDto } = body;
     return this.clientesService.create(createClienteDto, email);
