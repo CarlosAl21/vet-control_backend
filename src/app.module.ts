@@ -39,6 +39,8 @@ import { DetalleHistorial } from './detalle_historial/entities/detalle_historial
 import { RecordatoriosModule } from './recordatorios/recordatorios.module';
 import { ServiciosModule } from './servicios/servicios.module';
 import { Servicio } from './servicios/entities/servicio.entity';
+import { FirmantesModule } from './firmantes/firmantes.module';
+import { Firmante } from './firmantes/entities/firmante.entity';
 
 @Module({
   imports: [
@@ -68,6 +70,7 @@ import { Servicio } from './servicios/entities/servicio.entity';
         Usuario,
         DetalleHistorial,
         Servicio,
+        Firmante,
       ],
       extra: {
         options: `-c search_path=${process.env.DB_SCHEMA}`,
@@ -96,6 +99,7 @@ import { Servicio } from './servicios/entities/servicio.entity';
     DetalleHistorialModule,
     RecordatoriosModule,
     ServiciosModule,
+    FirmantesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
