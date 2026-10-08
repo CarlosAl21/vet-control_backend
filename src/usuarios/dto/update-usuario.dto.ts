@@ -1,6 +1,6 @@
 import { PartialType, ApiProperty } from '@nestjs/swagger';
 import { CreateUsuarioDto } from './create-usuario.dto';
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateUsuarioDto extends PartialType(CreateUsuarioDto) {
   @ApiProperty({
@@ -8,6 +8,7 @@ export class UpdateUsuarioDto extends PartialType(CreateUsuarioDto) {
       'Contraseña actual del usuario, necesaria para confirmar cambios sensibles como la contraseña',
     required: false,
   })
+  @IsOptional()
   @IsString()
   currentPassword?: string;
 }

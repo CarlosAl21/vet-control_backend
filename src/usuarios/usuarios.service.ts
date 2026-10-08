@@ -147,7 +147,13 @@ async resetPasswordWithToken(token: string, newPassword: string) {
     }
   }
 
-  async update(id: string, updateUsuarioDto: UpdateUsuarioDto) {
+  /**
+   * @param requesterId id of the authenticated user making the change. The
+   * current password is only verified when users change their own password;
+   * an admin resetting another user's password is exempt. When omitted the
+   * check is enforced (fail-safe).
+   */
+  async update(id: string, updateUsuarioDto: UpdateUsuarioDto, requesterId?: string) {
     try {
       const usuario = await this.usuarioRepository.findOneBy({ id_usuario: id });
       if (!usuario) throw new NotFoundException('Usuario no encontrado');
@@ -165,16 +171,19 @@ async resetPasswordWithToken(token: string, newPassword: string) {
       delete updateData.currentPassword; // Remover currentPassword de los datos de actualización
 
       if (updateUsuarioDto.contraseña) {
-        if (!updateUsuarioDto.currentPassword) {
-          throw new BadRequestException('La contraseña actual es requerida');
-        }
+        const changingOtherUser = requesterId !== undefined && requesterId !== id;
+        if (!changingOtherUser) {
+          if (!updateUsuarioDto.currentPassword) {
+            throw new BadRequestException('La contraseña actual es requerida');
+          }
 
-        const isPasswordValid = await bcrypt.compare(
-          updateUsuarioDto.currentPassword,
-          usuario.contraseña,
-        );
-        if (!isPasswordValid) {
-          throw new UnauthorizedException('Contraseña actual incorrecta');
+          const isPasswordValid = await bcrypt.compare(
+            updateUsuarioDto.currentPassword,
+            usuario.contraseña,
+          );
+          if (!isPasswordValid) {
+            throw new UnauthorizedException('Contraseña actual incorrecta');
+          }
         }
 
         // Hashear la nueva contraseña

@@ -1,7 +1,11 @@
+import { BadRequestException } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { UsuariosService } from './usuarios.service';
 import { Usuario } from './entities/usuario.entity';
+import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 
 describe('UsuariosService token revocation', () => {
   let repository: {
@@ -95,5 +99,36 @@ describe('UsuariosService token revocation', () => {
     await service.update('user-1', { nombre: 'Ana' });
 
     expect(repository.increment).not.toHaveBeenCalled();
+  });
+
+  it('update lets another user (admin) change a password without currentPassword', async () => {
+    repository.findOneBy.mockResolvedValue({
+      id_usuario: 'user-1',
+      contraseña: 'old-hash',
+    });
+    repository.findOne.mockResolvedValue({ id_usuario: 'user-1' });
+
+    await service.update('user-1', { contraseña: 'NewPassword123' }, 'admin-1');
+
+    const [, updateData] = repository.update.mock.calls[0];
+    expect(await bcrypt.compare('NewPassword123', updateData.contraseña)).toBe(true);
+    expect(repository.increment).toHaveBeenCalled();
+  });
+
+  it('update requires currentPassword when users change their own password', async () => {
+    repository.findOneBy.mockResolvedValue({
+      id_usuario: 'user-1',
+      contraseña: 'old-hash',
+    });
+
+    await expect(
+      service.update('user-1', { contraseña: 'NewPassword123' }, 'user-1'),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(repository.update).not.toHaveBeenCalled();
+  });
+
+  it('UpdateUsuarioDto treats currentPassword as optional', async () => {
+    const errors = await validate(plainToInstance(UpdateUsuarioDto, {}));
+    expect(errors.map((e) => e.property)).toEqual([]);
   });
 });
