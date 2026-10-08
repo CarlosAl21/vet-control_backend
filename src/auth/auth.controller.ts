@@ -101,10 +101,7 @@ export class AuthController {
     @Request() req,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const token =
-      req.cookies?.access_token ??
-      req.headers.authorization?.split(' ')[1];
-    await this.authService.logout(req.user.userId, token);
+    await this.authService.logout(req.user.userId);
     res.clearCookie('access_token');
     return { message: 'Sesión cerrada correctamente' };
   }

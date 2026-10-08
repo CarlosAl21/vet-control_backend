@@ -45,6 +45,10 @@ export class Usuario {
     @Column({ type: 'timestamp', nullable: true })
     resetPasswordExpires?: Date;
 
+    @ApiProperty({ example: 0, description: 'Session version; incremented to revoke all issued JWTs' })
+    @Column({ type: 'int', default: 0 })
+    token_version: number;
+
     @ApiProperty({ example: 'usuario', description: 'Rol del usuario' })
     @Column({ type: 'varchar', length: 50 })
     rol: string;

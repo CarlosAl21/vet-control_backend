@@ -39,7 +39,6 @@ import { DetalleHistorial } from './detalle_historial/entities/detalle_historial
 import { RecordatoriosModule } from './recordatorios/recordatorios.module';
 import { ServiciosModule } from './servicios/servicios.module';
 import { Servicio } from './servicios/entities/servicio.entity';
-import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -97,7 +96,6 @@ import { RedisModule } from './redis/redis.module';
     DetalleHistorialModule,
     RecordatoriosModule,
     ServiciosModule,
-    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService],

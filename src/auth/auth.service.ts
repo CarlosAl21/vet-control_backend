@@ -1,17 +1,12 @@
-import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
-import { Redis } from 'ioredis';
-import { REDIS_CLIENT } from 'src/redis/redis.provider';
-
-const SESSION_TTL_SECONDS = 86400; // 24 hours — align with JWT expiry
 
 @Injectable()
 export class AuthService {
     constructor(
         private usuarioService: UsuariosService,
         private jwtService: JwtService,
-        @Inject(REDIS_CLIENT) private redis: Redis,
     ) {}
 
     async validateUser(email: string, pass: string): Promise<any> {
@@ -36,12 +31,9 @@ export class AuthService {
                 sub: user.id_usuario,
                 rol: user.rol,
                 empresaId: fullUser?.id_empresa?.id_empresa ?? null,
+                tv: fullUser?.token_version ?? 0,
             };
             const token = this.jwtService.sign(payload);
-
-            const sessionKey = `sessions:${user.id_usuario}`;
-            await this.redis.sadd(sessionKey, token);
-            await this.redis.expire(sessionKey, SESSION_TTL_SECONDS);
 
             return {
                 access_token: token,
@@ -61,9 +53,13 @@ export class AuthService {
         }
     }
 
-    async logout(id_usuario: string, token: string) {
+    /**
+     * Revokes every token issued to the user by bumping token_version.
+     * Logging out on one device therefore logs out all devices.
+     */
+    async logout(id_usuario: string) {
         try {
-            await this.redis.srem(`sessions:${id_usuario}`, token);
+            await this.usuarioService.incrementTokenVersion(id_usuario);
         } catch (error) {
             console.error('Error al cerrar sesión:', error);
             throw new InternalServerErrorException('Error al cerrar sesión');

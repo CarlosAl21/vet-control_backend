@@ -46,6 +46,20 @@ export class UsuariosService {
     return this.usuarioRepository.findOne({ where: { id_usuario: id }, relations: ['id_empresa'] });
   }
 
+  /** Returns the user's current token_version, or null when the user does not exist. */
+  async getTokenVersion(id: string): Promise<number | null> {
+    const usuario = await this.usuarioRepository.findOne({
+      where: { id_usuario: id },
+      select: { id_usuario: true, token_version: true },
+    });
+    return usuario ? usuario.token_version : null;
+  }
+
+  /** Invalidates every JWT previously issued to the user. */
+  async incrementTokenVersion(id: string): Promise<void> {
+    await this.usuarioRepository.increment({ id_usuario: id }, 'token_version', 1);
+  }
+
   async saveResetToken(email: string, token: string) {
   const usuario = await this.usuarioRepository.findOne({ where: { email } });
   if (!usuario) return false;
@@ -67,6 +81,7 @@ async resetPasswordWithToken(token: string, newPassword: string) {
   usuario.resetPasswordToken = null;
   usuario.resetPasswordExpires = null;
   await this.usuarioRepository.save(usuario);
+  await this.incrementTokenVersion(usuario.id_usuario);
   return true;
 }
 
@@ -176,7 +191,12 @@ async resetPasswordWithToken(token: string, newPassword: string) {
 
       // Realizar la actualización en la base de datos
       await this.usuarioRepository.update(id, updateData);
-      
+
+      // A password change revokes every existing session
+      if (updateUsuarioDto.contraseña) {
+        await this.incrementTokenVersion(id);
+      }
+
       // Obtener el usuario actualizado para retornarlo (sin la contraseña)
       const usuarioActualizado = await this.usuarioRepository.findOne({ 
         where: { id_usuario: id }, 
