@@ -10,6 +10,7 @@ import { UsuariosModule } from 'src/usuarios/usuarios.module';
 import { JwtStrategy } from './jwt.strategy';
 import { Empresa } from 'src/empresas/entities/empresa.entity'; // Asegúrate de que la entidad Empresa esté correctamente importada
 import { MailModule } from 'src/mail/mail.module';
+import { getJwtExpiresIn, getJwtSecret } from './jwt.config';
 
 @Module({
   imports: [
@@ -22,8 +23,10 @@ import { MailModule } from 'src/mail/mail.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET', 'secretKey'), // Default secret key
-        signOptions: { expiresIn: '6h' }, // 60 seconds expiration time
+        // Throws at boot when JWT_SECRET is missing (no insecure default)
+        secret: getJwtSecret(configService),
+        // Same JWT_EXPIRES_IN value drives the auth cookie maxAge
+        signOptions: { expiresIn: getJwtExpiresIn(configService) },
       }),
     }),
   ],

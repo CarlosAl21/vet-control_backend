@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
@@ -17,15 +18,22 @@ import { Empresa } from 'src/empresas/entities/empresa.entity';
 import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { MailService } from 'src/mail/mail.service';
 import { v4 as uuidv4 } from 'uuid';
+import { durationToMs, getJwtExpiresIn } from './jwt.config';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
+  private readonly cookieMaxAgeMs: number;
+
   constructor(
     private readonly authService: AuthService,
     private readonly usuarioService: UsuariosService,
     private readonly mailService: MailService,
-  ) {}
+    configService: ConfigService,
+  ) {
+    // Cookie lifetime matches the JWT expiry (single JWT_EXPIRES_IN source)
+    this.cookieMaxAgeMs = durationToMs(getJwtExpiresIn(configService));
+  }
 
   @Post('register')
   @ApiOperation({ summary: 'Registrar un nuevo usuario — el rol siempre se asigna como "usuario"' })
@@ -89,7 +97,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: this.cookieMaxAgeMs,
     });
     return { user: loginResult.user };
   }
