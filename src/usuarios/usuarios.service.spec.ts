@@ -77,7 +77,6 @@ describe('UsuariosService token revocation', () => {
     });
 
     await service.update('user-1', {
-      id_usuario: 'user-1',
       contraseña: 'NewPassword123',
       currentPassword: 'OldPassword123',
     });
@@ -93,7 +92,7 @@ describe('UsuariosService token revocation', () => {
     repository.findOneBy.mockResolvedValue({ id_usuario: 'user-1' });
     repository.findOne.mockResolvedValue({ id_usuario: 'user-1' });
 
-    await service.update('user-1', { id_usuario: 'user-1', nombre: 'Ana' });
+    await service.update('user-1', { nombre: 'Ana' });
 
     expect(repository.increment).not.toHaveBeenCalled();
   });
