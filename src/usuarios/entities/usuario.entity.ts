@@ -1,5 +1,5 @@
 import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { Cita } from 'src/citas/entities/cita.entity';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
 import { ApiProperty } from '@nestjs/swagger';
