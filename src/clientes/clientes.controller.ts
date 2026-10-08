@@ -25,6 +25,8 @@ export class ClientesController {
       ejemplo: {
         summary: 'Ejemplo de cliente',
         value: {
+          nombre: 'Juan',
+          apellido: 'Pérez',
           id_empresa: { id_empresa: 'abc123xyz' },
           email: 'juan.perez@email.com'
         }
@@ -34,7 +36,7 @@ export class ClientesController {
   @ApiResponse({ status: 201, description: 'Cliente creado correctamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
   create(
-    @Body() body: { id_empresa: { id_empresa: string }, email: string }
+    @Body() body: CreateClienteDto & { email: string }
   ) {
     const { email, ...createClienteDto } = body;
     return this.clientesService.create(createClienteDto, email);
