@@ -8,7 +8,7 @@ import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cliente } from './entities/cliente.entity';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { MailService } from 'src/mail/mail.service';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
@@ -117,7 +117,7 @@ export class ClientesService {
 
   findAll(empresaId: string) {
     return this.clienteRepository.find({
-      where: { id_empresa: { id_empresa: empresaId } },
+      where: { id_empresa: Equal(empresaId) },
       relations: ['id_empresa', 'id_usuario'],
     });
   }

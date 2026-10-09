@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import { EstadoLote, Lote } from './entities/lote.entity';
 import { CreateLoteDto } from './dto/create-lote.dto';
 import { UpdateLoteDto } from './dto/update-lote.dto';
@@ -34,7 +34,7 @@ export class LotesService {
   async findAll(empresaId: string): Promise<Lote[]> {
     try {
       return await this.loteRepository.find({
-        where: { id_empresa: { id_empresa: empresaId } },
+        where: { id_empresa: Equal(empresaId) },
         relations: ['id_producto', 'id_proveedor', 'id_empresa'],
       });
     } catch (error) {

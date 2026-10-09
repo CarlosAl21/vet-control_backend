@@ -3,7 +3,7 @@ import { CreateProveedoreDto } from './dto/create-proveedor.dto';
 import { UpdateProveedoreDto } from './dto/update-proveedor.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Proveedor } from './entities/proveedor.entity';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 
 @Injectable()
 export class ProveedoresService {
@@ -23,7 +23,7 @@ export class ProveedoresService {
 
   findAll(empresaId: string) {
     return this.proveedorRepository.find({
-      where: { id_empresa: { id_empresa: empresaId } },
+      where: { id_empresa: Equal(empresaId) },
       relations: ['id_empresa'],
     });
   }

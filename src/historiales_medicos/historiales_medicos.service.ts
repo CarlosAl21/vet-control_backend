@@ -3,7 +3,7 @@ import { CreateHistorialesMedicoDto } from './dto/create-historiales_medico.dto'
 import { UpdateHistorialesMedicoDto } from './dto/update-historiales_medico.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HistorialesMedico } from './entities/historiales_medico.entity';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import { FotosHistorial } from 'src/fotos_historial/entities/fotos_historial.entity';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import * as Multer from 'multer';
@@ -65,7 +65,7 @@ export class HistorialesMedicosService {
 
   findAll(empresaId: string) {
     return this.historialesMedicoRepository.find({
-      where: { id_empresa: { id_empresa: empresaId } },
+      where: { id_empresa: Equal(empresaId) },
       relations: ['id_mascota'],
     });
   }

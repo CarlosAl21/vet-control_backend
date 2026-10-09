@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, InternalServerErrorException } from '@ne
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import { Producto } from './entities/producto.entity';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class ProductosService {
 
   findAll(empresaId: string) {
     return this.productoRepository.find({
-      where: { id_empresa: { id_empresa: empresaId } },
+      where: { id_empresa: Equal(empresaId) },
       relations: ['id_subcategoria', 'id_empresa'],
     });
   }

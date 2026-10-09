@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import { CreateFirmanteDto } from './dto/create-firmante.dto';
 import { UpdateFirmanteDto } from './dto/update-firmante.dto';
 import { Firmante } from './entities/firmante.entity';
@@ -18,7 +18,7 @@ export class FirmantesService {
   async findAll(user: FirmanteRequester) {
     const empresaId = this.requireEmpresa(user);
     return this.firmanteRepository.find({
-      where: { id_empresa: { id_empresa: empresaId } },
+      where: { id_empresa: Equal(empresaId) },
       order: { orden: 'ASC' },
     });
   }
@@ -50,7 +50,7 @@ export class FirmantesService {
   private async findOwned(id: string, user: FirmanteRequester) {
     const empresaId = this.requireEmpresa(user);
     const firmante = await this.firmanteRepository.findOne({
-      where: { id_firmante: id, id_empresa: { id_empresa: empresaId } },
+      where: { id_firmante: id, id_empresa: Equal(empresaId) },
     });
     if (!firmante) {
       throw new NotFoundException('Firmante no encontrado');

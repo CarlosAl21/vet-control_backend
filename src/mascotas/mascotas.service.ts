@@ -3,7 +3,7 @@ import { CreateMascotaDto } from './dto/create-mascota.dto';
 import { UpdateMascotaDto } from './dto/update-mascota.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Mascota } from './entities/mascota.entity';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 
 @Injectable()
@@ -28,7 +28,7 @@ export class MascotasService {
 
   findAll(empresaId: string) {
     return this.mascotaRepository.find({
-      where: { id_usuario: { id_empresa: { id_empresa: empresaId } } },
+      where: { id_usuario: { id_empresa: Equal(empresaId) } },
       relations: ['id_usuario'],
     });
   }

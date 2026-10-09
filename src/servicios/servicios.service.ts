@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateServicioDto } from './dto/create-servicio.dto';
 import { UpdateServicioDto } from './dto/update-servicio.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import { Servicio } from './entities/servicio.entity';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
 
@@ -32,7 +32,7 @@ export class ServiciosService {
 
   findAll(empresaId: string) {
     return this.servicioRepository.find({
-      where: { id_empresa: { id_empresa: empresaId } },
+      where: { id_empresa: Equal(empresaId) },
       relations: ['id_empresa'],
     });
   }

@@ -1,6 +1,7 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { Equal } from 'typeorm';
 import { FirmantesService } from './firmantes.service';
 import { Firmante } from './entities/firmante.entity';
 
@@ -37,7 +38,7 @@ describe('FirmantesService', () => {
       await service.findAll(user);
 
       expect(repo.find).toHaveBeenCalledWith({
-        where: { id_empresa: { id_empresa: 'emp-1' } },
+        where: { id_empresa: Equal('emp-1') },
         order: { orden: 'ASC' },
       });
     });
@@ -84,7 +85,7 @@ describe('FirmantesService', () => {
       const result = await service.update('f-1', { orden: 3 }, user);
 
       expect(repo.findOne).toHaveBeenCalledWith({
-        where: { id_firmante: 'f-1', id_empresa: { id_empresa: 'emp-1' } },
+        where: { id_firmante: 'f-1', id_empresa: Equal('emp-1') },
       });
       expect(result.orden).toBe(3);
     });
@@ -113,7 +114,7 @@ describe('FirmantesService', () => {
       await service.remove('f-1', user);
 
       expect(repo.findOne).toHaveBeenCalledWith({
-        where: { id_firmante: 'f-1', id_empresa: { id_empresa: 'emp-1' } },
+        where: { id_firmante: 'f-1', id_empresa: Equal('emp-1') },
       });
       expect(repo.remove).toHaveBeenCalledWith(existing);
     });
