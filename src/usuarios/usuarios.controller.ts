@@ -66,8 +66,12 @@ export class UsuariosController {
   @ApiParam({ name: 'id', description: 'ID del usuario a actualizar' })
   @ApiResponse({ status: 200, description: 'Usuario actualizado exitosamente' })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
-  update(@Param('id') id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
-    return this.usuariosService.update(id, updateUsuarioDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateUsuarioDto: UpdateUsuarioDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.usuariosService.update(id, updateUsuarioDto, user.userId);
   }
 
   @Delete(':id')

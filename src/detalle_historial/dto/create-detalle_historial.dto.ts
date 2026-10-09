@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { HistorialesMedico } from 'src/historiales_medicos/entities/historiales_medico.entity';
@@ -14,65 +15,69 @@ export class CreateDetalleHistorialDto {
   @IsNotEmpty()
   id_historial: DeepPartial<HistorialesMedico>;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Peso del animal en kg',
     example: 12.5,
     type: Number,
   })
+  @IsOptional()
+  @Type(() => Number)
   @IsNumber()
-  @IsNotEmpty()
-  peso_kg: number;
+  peso_kg?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Temperatura del animal en grados Celsius',
     example: 38.5,
     type: Number,
   })
+  @IsOptional()
+  @Type(() => Number)
   @IsNumber()
-  @IsNotEmpty()
-  temperatura_c: number;
+  temperatura_c?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Frecuencia cardíaca del animal en latidos por minuto',
     example: 120,
     type: Number,
   })
+  @IsOptional()
+  @Type(() => Number)
   @IsNumber()
-  @IsNotEmpty()
-  frecuencia_cardiaca: number;
+  frecuencia_cardiaca?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Frecuencia respiratoria del animal',
     example: 30,
     type: Number,
   })
+  @IsOptional()
+  @Type(() => Number)
   @IsNumber()
-  @IsNotEmpty()
-  frecuencia_respiratoria: number;
+  frecuencia_respiratoria?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Diagnóstico realizado',
     example: 'Gripe canina',
   })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  diagnostico: string;
+  diagnostico?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Tratamiento aplicado',
     example: 'Antibióticos y reposo',
   })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  tratamiento: string;
+  tratamiento?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Observaciones adicionales',
     example: 'El paciente mostró mejoría al tercer día de tratamiento.',
   })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  observaciones: string;
+  observaciones?: string;
 
   @ApiPropertyOptional({
     description: 'Campo flexible para información personalizada',

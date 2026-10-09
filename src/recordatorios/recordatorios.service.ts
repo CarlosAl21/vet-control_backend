@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRecordatorioDto } from './dto/create-recordatorio.dto';
 import { UpdateRecordatorioDto } from './dto/update-recordatorio.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,17 +17,15 @@ export class RecordatoriosService {
 
   async create(createRecordatorioDto: CreateRecordatorioDto) {
     try {
-      const mascota = await this.mascotaRepository.findOne({
-        where: { id_mascota: createRecordatorioDto.id_mascota.id_mascota}});
-      if (!mascota) {
-        throw new Error('Mascota no encontrada');
-      }
+      const { id_mascota, ...rest } = createRecordatorioDto;
+      const mascota = await this.findMascota(id_mascota);
       const recordatorio = this.recordatorioRepository.create({
-        ...createRecordatorioDto,
+        ...rest,
         id_mascota: mascota,
       });
       return await this.recordatorioRepository.save(recordatorio);
     } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       throw new Error(`Error al crear el recordatorio: ${error.message}`);
     }
   }
@@ -61,9 +59,14 @@ export class RecordatoriosService {
       if (!recordatorio) {
         throw new Error('Recordatorio no encontrado');
       }
-      const recordatorioUpdate = this.recordatorioRepository.merge(recordatorio, updateRecordatorioDto);
+      const { id_mascota, ...rest } = updateRecordatorioDto;
+      const recordatorioUpdate = this.recordatorioRepository.merge(recordatorio, rest);
+      if (id_mascota) {
+        recordatorioUpdate.id_mascota = await this.findMascota(id_mascota);
+      }
       return await this.recordatorioRepository.save(recordatorioUpdate);
     } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       throw new Error(`Error al actualizar el recordatorio: ${error.message}`);
     }
   }
@@ -96,5 +99,15 @@ export class RecordatoriosService {
     } catch (error) {
       throw new Error(`Error al buscar recordatorios por mascota: ${error.message}`);
     }
+  }
+
+  private async findMascota(id_mascota: string): Promise<Mascota> {
+    const mascota = await this.mascotaRepository.findOne({
+      where: { id_mascota },
+    });
+    if (!mascota) {
+      throw new NotFoundException('Mascota no encontrada');
+    }
+    return mascota;
   }
 }

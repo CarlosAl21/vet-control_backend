@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { IsDate, IsNotEmpty, IsString } from 'class-validator';
 import { Mascota } from 'src/mascotas/entities/mascota.entity';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
@@ -10,6 +11,7 @@ export class CreateCitaDto {
     type: String,
     format: 'date-time',
   })
+  @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
   fecha_hora: Date;

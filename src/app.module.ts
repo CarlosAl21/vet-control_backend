@@ -39,7 +39,8 @@ import { DetalleHistorial } from './detalle_historial/entities/detalle_historial
 import { RecordatoriosModule } from './recordatorios/recordatorios.module';
 import { ServiciosModule } from './servicios/servicios.module';
 import { Servicio } from './servicios/entities/servicio.entity';
-import { RedisModule } from './redis/redis.module';
+import { FirmantesModule } from './firmantes/firmantes.module';
+import { Firmante } from './firmantes/entities/firmante.entity';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { RedisModule } from './redis/redis.module';
         Usuario,
         DetalleHistorial,
         Servicio,
+        Firmante,
       ],
       extra: {
         options: `-c search_path=${process.env.DB_SCHEMA}`,
@@ -97,7 +99,7 @@ import { RedisModule } from './redis/redis.module';
     DetalleHistorialModule,
     RecordatoriosModule,
     ServiciosModule,
-    RedisModule,
+    FirmantesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

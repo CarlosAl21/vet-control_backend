@@ -42,8 +42,8 @@ export class Mascota {
     peso_actual: number;
 
     @ApiProperty({ example: 'Mediano', description: 'Tamaño de la mascota' })
-    @Column({ type: 'varchar', length: 100 })
-    tamano: string;
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    tamano: string | null;
 
     @IsOptional()
     @ApiProperty({ example: '950098765432100', description: 'Numero de microchip'})

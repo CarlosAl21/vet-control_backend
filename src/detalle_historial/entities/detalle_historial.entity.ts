@@ -26,26 +26,26 @@ export class DetalleHistorial {
   @Column({ type: 'date'})
   fecha: Date;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  peso_kg: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  peso_kg: number | null;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  temperatura_c: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  temperatura_c: number | null;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  frecuencia_cardiaca: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  frecuencia_cardiaca: number | null;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  frecuencia_respiratoria: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  frecuencia_respiratoria: number | null;
 
-  @Column({ type: 'text' })
-  diagnostico: string;
+  @Column({ type: 'text', nullable: true })
+  diagnostico: string | null;
 
-  @Column({ type: 'text' })
-  tratamiento: string;
+  @Column({ type: 'text', nullable: true })
+  tratamiento: string | null;
 
-  @Column({ type: 'text' })
-  observaciones: string;
+  @Column({ type: 'text', nullable: true })
+  observaciones: string | null;
 
   @Column({ type: 'json', nullable: true })
   otros_detalles: Record<string, any>;

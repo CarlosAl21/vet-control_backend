@@ -5,11 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { UsuariosModule } from 'src/usuarios/usuarios.module';
 import { JwtStrategy } from './jwt.strategy';
 import { Empresa } from 'src/empresas/entities/empresa.entity'; // Asegúrate de que la entidad Empresa esté correctamente importada
 import { MailModule } from 'src/mail/mail.module';
+import { getJwtExpiresIn, getJwtSecret } from './jwt.config';
 
 @Module({
   imports: [
@@ -18,12 +20,16 @@ import { MailModule } from 'src/mail/mail.module';
     UsuariosModule,
     MailModule,
     PassportModule,
+    // In-memory rate limiting; only applied where ThrottlerGuard is used (login, forgot-password)
+    ThrottlerModule.forRoot([{ name: 'auth', ttl: 60_000, limit: 5 }]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET', 'secretKey'), // Default secret key
-        signOptions: { expiresIn: '6h' }, // 60 seconds expiration time
+        // Throws at boot when JWT_SECRET is missing (no insecure default)
+        secret: getJwtSecret(configService),
+        // Same JWT_EXPIRES_IN value drives the auth cookie maxAge
+        signOptions: { expiresIn: getJwtExpiresIn(configService) },
       }),
     }),
   ],

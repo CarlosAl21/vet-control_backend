@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Empresa } from "src/empresas/entities/empresa.entity";
 import { Subcategoria } from "src/subcategorias/entities/subcategoria.entity";
@@ -25,6 +26,7 @@ export class CreateProductoDto {
         example: 15.75,
         description: 'Precio unitario del producto',
     })
+    @Type(() => Number)
     @IsNumber()
     @IsNotEmpty()
     precio_unitario: number;
@@ -32,9 +34,10 @@ export class CreateProductoDto {
     @ApiProperty({
         example: { id_subcategoria: '6631b345a2123c9f2ab45e3c' },
         description: 'ID de la subcategoría asociada al producto',
+        required: false,
     })
-    @IsNotEmpty()
-    id_subcategoria: DeepPartial<Subcategoria>;
+    @IsOptional()
+    id_subcategoria?: DeepPartial<Subcategoria>;
 
     @ApiProperty({
         example: { id_empresa: '661faed5b2c7a3f8a41c9a1b' },

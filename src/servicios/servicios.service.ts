@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateServicioDto } from './dto/create-servicio.dto';
 import { UpdateServicioDto } from './dto/update-servicio.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,18 +17,15 @@ export class ServiciosService {
 
   async create(createServicioDto: CreateServicioDto) {
     try {
-      const empresa = await this.empresaRepository.findOne({
-        where: { id_empresa: createServicioDto.id_empresa.id_empresa },
-      });
-      if (!empresa) {
-        throw new Error('Empresa no encontrada');
-      }
+      const { id_empresa, ...rest } = createServicioDto;
+      const empresa = await this.findEmpresa(id_empresa);
       const servicio = this.servicioRepository.create({
-        ...createServicioDto,
+        ...rest,
         id_empresa: empresa,
       });
       return this.servicioRepository.save(servicio);
     } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       throw new Error(`Error creando el servicio: ${error.message}`);
     }
   }
@@ -64,9 +61,14 @@ export class ServiciosService {
       if (!servicio) {
         throw new Error(`Servicio con id ${id} no encontrado`);
       }
-      const servicioUpdated = this.servicioRepository.merge(servicio, updateServicioDto);
+      const { id_empresa, ...rest } = updateServicioDto;
+      const servicioUpdated = this.servicioRepository.merge(servicio, rest);
+      if (id_empresa) {
+        servicioUpdated.id_empresa = await this.findEmpresa(id_empresa);
+      }
       return this.servicioRepository.save(servicioUpdated);
     } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       throw new Error(`Error actualizando el servicio con id ${id}: ${error.message}`);
     }
   }
@@ -97,4 +99,14 @@ export class ServiciosService {
     }
   }
 
+
+  private async findEmpresa(id_empresa: string): Promise<Empresa> {
+    const empresa = await this.empresaRepository.findOne({
+      where: { id_empresa },
+    });
+    if (!empresa) {
+      throw new NotFoundException('Empresa no encontrada');
+    }
+    return empresa;
+  }
 }
