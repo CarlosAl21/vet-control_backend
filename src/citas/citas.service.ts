@@ -3,7 +3,7 @@ import { CreateCitaDto } from './dto/create-cita.dto';
 import { UpdateCitaDto } from './dto/update-cita.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cita, EstadoCita } from './entities/cita.entity';
-import { Equal, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { MailService } from 'src/mail/mail.service';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { Mascota } from 'src/mascotas/entities/mascota.entity';
@@ -55,10 +55,12 @@ export class CitasService {
   }
 
   findAll(empresaId: string) {
-    return this.citaRepository.find({
-      where: { id_usuario: { id_empresa: Equal(empresaId) } },
-      relations: ['id_mascota', 'id_usuario'],
-    });
+    return this.citaRepository
+      .createQueryBuilder('cita')
+      .leftJoinAndSelect('cita.id_mascota', 'mascota')
+      .leftJoinAndSelect('cita.id_usuario', 'usuario')
+      .where('usuario.id_empresa = :empresaId', { empresaId })
+      .getMany();
   }
 
   async findOne(id: string) {
