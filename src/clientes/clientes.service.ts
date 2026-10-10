@@ -187,12 +187,12 @@ export class ClientesService {
     try {
       const cliente = await this.clienteRepository.findOne({
         where: { id_cliente: id },
-        relations: ['id_usuario', 'mascotas'],
+        relations: ['id_usuario', 'id_usuario.mascotas'],
       });
       if (!cliente) {
         throw new NotFoundException('Cliente no encontrado');
       }
-      return cliente.id_usuario.mascotas;
+      return cliente.id_usuario?.mascotas ?? [];
     } catch (error) {
       console.error('Error al obtener las mascotas del cliente:', error);
       if (error instanceof NotFoundException) {
