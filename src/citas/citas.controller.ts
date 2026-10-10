@@ -21,8 +21,9 @@ export class CitasController {
   @ApiBody({ type: CreateCitaDto, description: 'Datos para crear una cita' })
   @ApiResponse({ status: 201, description: 'Cita creada correctamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
-  create(@Body() createCitaDto: CreateCitaDto) {
-    return this.citasService.create(createCitaDto);
+  @ApiResponse({ status: 404, description: 'Usuario o mascota no encontrados en la clínica.' })
+  create(@Body() createCitaDto: CreateCitaDto, @CurrentUser() user: any) {
+    return this.citasService.create(createCitaDto, user.empresaId);
   }
 
   @Get()
@@ -41,8 +42,8 @@ export class CitasController {
   @ApiParam({ name: 'id', description: 'ID de la cita', example: 'cita-1234abcd' })
   @ApiResponse({ status: 200, description: 'Cita encontrada.' })
   @ApiResponse({ status: 404, description: 'Cita no encontrada.' })
-  findOne(@Param('id') id: string) {
-    return this.citasService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.citasService.findOne(id, user.empresaId);
   }
 
   @Patch(':id')
@@ -54,8 +55,8 @@ export class CitasController {
   @ApiResponse({ status: 200, description: 'Cita actualizada correctamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
   @ApiResponse({ status: 404, description: 'Cita no encontrada.' })
-  update(@Param('id') id: string, @Body() updateCitaDto: UpdateCitaDto) {
-    return this.citasService.update(id, updateCitaDto);
+  update(@Param('id') id: string, @Body() updateCitaDto: UpdateCitaDto, @CurrentUser() user: any) {
+    return this.citasService.update(id, updateCitaDto, user.empresaId);
   }
 
   @Delete(':id')
@@ -65,7 +66,7 @@ export class CitasController {
   @ApiParam({ name: 'id', description: 'ID de la cita a eliminar', example: 'cita-1234abcd' })
   @ApiResponse({ status: 200, description: 'Cita eliminada correctamente.' })
   @ApiResponse({ status: 404, description: 'Cita no encontrada.' })
-  remove(@Param('id') id: string) {
-    return this.citasService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.citasService.remove(id, user.empresaId);
   }
 }

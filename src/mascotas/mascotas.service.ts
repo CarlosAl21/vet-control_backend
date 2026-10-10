@@ -30,7 +30,9 @@ export class MascotasService {
     return this.mascotaRepository
       .createQueryBuilder('mascota')
       .leftJoinAndSelect('mascota.id_usuario', 'usuario')
-      .where('usuario.id_empresa = :empresaId', { empresaId })
+      // Owner usuario must be a cliente of the clinic; the join is not selected and
+      // getMany hydrates by primary key, so each mascota appears once
+      .innerJoin('usuario.clientes', 'cliente', 'cliente.id_empresa = :empresaId', { empresaId })
       .getMany();
   }
 
