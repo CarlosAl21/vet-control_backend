@@ -48,7 +48,7 @@ export class FacturasService {
   findAll(empresaId: string): Promise<Factura[]> {
     return this.facturaRepository.find({
       where: { id_empresa: Equal(empresaId) },
-      relations: ['cliente', 'id_detalle_factura', 'id_usuario'],
+      relations: ['cliente', 'cliente.id_usuario', 'detalles'],
     });
   }
 
