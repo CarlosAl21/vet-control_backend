@@ -35,14 +35,16 @@ export class Usuario {
     direccion: string;
 
     @ApiProperty({ example: 'hashed_password', description: 'Contraseña del usuario (encriptada)' })
-    @Column({ type: 'varchar', length: 255 })
+    // Sensitive columns use select: false so they never leak through finds or
+    // joined relations; load them explicitly where they are needed.
+    @Column({ type: 'varchar', length: 255, select: false })
     contraseña: string;
     @ApiProperty({ example: 'ea45qw845651qwd' , description: 'Token de restablecimiento de contraseña' })
-    @Column({ nullable: true })
+    @Column({ nullable: true, select: false })
     resetPasswordToken?: string;
 
     @ApiProperty({ example: '2023-10-01T12:00:00Z', description: 'Fecha de expiración del token de restablecimiento de contraseña' })
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ type: 'timestamp', nullable: true, select: false })
     resetPasswordExpires?: Date;
 
     @ApiProperty({ example: 0, description: 'Session version; incremented to revoke all issued JWTs' })

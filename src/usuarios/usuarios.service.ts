@@ -4,7 +4,7 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from './entities/usuario.entity';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
-import { Equal, MoreThan, Repository } from 'typeorm';
+import { Equal, FindOptionsWhere, MoreThan, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import {
   BadRequestException,
@@ -36,11 +36,19 @@ export class UsuariosService {
   }
 
   async validateUser(email: string, pass: string): Promise<Usuario|any> {
-    const user = await this.usuarioRepository.findOne({ where: { email: email }, relations: ['id_empresa'] });
-    if (user && (await bcrypt.compare(pass, user.contraseña))) {
-      return user;
+    const credentials = await this.findPasswordHash({ email });
+    if (!credentials || !(await bcrypt.compare(pass, credentials.contraseña))) {
+      return null;
     }
-    return null;
+    return this.findOneWithEmpresa(credentials.id_usuario);
+  }
+
+  /** contraseña is select: false, so it has to be requested explicitly. */
+  private findPasswordHash(where: FindOptionsWhere<Usuario>) {
+    return this.usuarioRepository.findOne({
+      where,
+      select: { id_usuario: true, contraseña: true },
+    });
   }
 
   async findOneWithEmpresa(id: string): Promise<Usuario | null> {
@@ -108,7 +116,8 @@ async resetPasswordWithToken(token: string, newPassword: string) {
         }
       }
       const nuevoUsuario = this.usuarioRepository.create({ ...rest, id_empresa: empresa });
-      return await this.usuarioRepository.save(nuevoUsuario);
+      const { contraseña, ...usuarioGuardado } = await this.usuarioRepository.save(nuevoUsuario);
+      return usuarioGuardado;
       
     } catch (error) {
       console.error('Error al crear el usuario:', error);
@@ -175,9 +184,10 @@ async resetPasswordWithToken(token: string, newPassword: string) {
             throw new BadRequestException('La contraseña actual es requerida');
           }
 
+          const credentials = await this.findPasswordHash({ id_usuario: id });
           const isPasswordValid = await bcrypt.compare(
             updateUsuarioDto.currentPassword,
-            usuario.contraseña,
+            credentials.contraseña,
           );
           if (!isPasswordValid) {
             throw new UnauthorizedException('Contraseña actual incorrecta');

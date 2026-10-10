@@ -1,7 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { Equal, Repository } from 'typeorm';
+import { Equal, getMetadataArgsStorage, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { UsuariosService } from './usuarios.service';
 import { Usuario } from './entities/usuario.entity';
@@ -71,14 +71,10 @@ describe('UsuariosService token revocation', () => {
 
   it('update revokes existing sessions when the password changes', async () => {
     const currentHash = await bcrypt.hash('OldPassword123', 4);
-    repository.findOneBy.mockResolvedValue({
-      id_usuario: 'user-1',
-      contraseña: currentHash,
-    });
-    repository.findOne.mockResolvedValue({
-      id_usuario: 'user-1',
-      contraseña: 'new-hash',
-    });
+    repository.findOneBy.mockResolvedValue({ id_usuario: 'user-1' });
+    repository.findOne
+      .mockResolvedValueOnce({ id_usuario: 'user-1', contraseña: currentHash })
+      .mockResolvedValueOnce({ id_usuario: 'user-1' });
 
     await service.update('user-1', {
       contraseña: 'NewPassword123',
@@ -169,12 +165,62 @@ describe('UsuariosService token revocation', () => {
       expect(manager.findOne).toHaveBeenCalledWith('Empresa', { where: { id_empresa: 'e-1' } });
     });
 
+    it('does not return the password hash', async () => {
+      const result = await service.create(dto);
+
+      expect(result).not.toHaveProperty('contraseña');
+      expect(result).toMatchObject({ email: 'ana@mail.com' });
+    });
+
     it('throws NotFoundException when the empresa does not exist', async () => {
       manager.findOne.mockResolvedValue(null);
 
       await expect(service.create({ ...dto, id_empresa: 'missing' })).rejects.toBeInstanceOf(
         NotFoundException,
       );
+    });
+  });
+
+  describe('sensitive columns', () => {
+    it.each(['contraseña', 'resetPasswordToken', 'resetPasswordExpires'])(
+      '%s is excluded from default selects',
+      (propertyName) => {
+        const column = getMetadataArgsStorage().columns.find(
+          (c) => c.target === Usuario && c.propertyName === propertyName,
+        );
+        expect(column?.options.select).toBe(false);
+      },
+    );
+  });
+
+  describe('validateUser', () => {
+    it('returns the user without the password hash when credentials match', async () => {
+      const hash = await bcrypt.hash('Secret123', 4);
+      repository.findOne
+        .mockResolvedValueOnce({ id_usuario: 'user-1', contraseña: hash })
+        .mockResolvedValueOnce({ id_usuario: 'user-1', email: 'ana@mail.com' });
+
+      const user = await service.validateUser('ana@mail.com', 'Secret123');
+
+      expect(user).toEqual({ id_usuario: 'user-1', email: 'ana@mail.com' });
+      expect(repository.findOne).toHaveBeenNthCalledWith(1, {
+        where: { email: 'ana@mail.com' },
+        select: { id_usuario: true, contraseña: true },
+      });
+    });
+
+    it('returns null when the password is wrong', async () => {
+      const hash = await bcrypt.hash('Secret123', 4);
+      repository.findOne.mockResolvedValueOnce({ id_usuario: 'user-1', contraseña: hash });
+
+      expect(await service.validateUser('ana@mail.com', 'wrong')).toBeNull();
+      expect(repository.findOne).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns null when the email does not exist', async () => {
+      repository.findOne.mockResolvedValueOnce(null);
+
+      expect(await service.validateUser('nobody@mail.com', 'Secret123')).toBeNull();
     });
   });
 });

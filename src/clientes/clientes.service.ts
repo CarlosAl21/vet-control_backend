@@ -93,7 +93,9 @@ export class ClientesService {
           }
         );
 
-        createClienteDto.id_usuario = usuarioSave;
+        // Never return the freshly hashed password inside the cliente response
+        const { contraseña, ...usuarioSinContraseña } = usuarioSave;
+        createClienteDto.id_usuario = usuarioSinContraseña as Usuario;
         const nuevoCliente = this.clienteRepository.create(createClienteDto);
         const clienteSave = await this.clienteRepository.save(nuevoCliente);
         return clienteSave;
