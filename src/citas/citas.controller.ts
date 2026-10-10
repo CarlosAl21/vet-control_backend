@@ -21,8 +21,9 @@ export class CitasController {
   @ApiBody({ type: CreateCitaDto, description: 'Datos para crear una cita' })
   @ApiResponse({ status: 201, description: 'Cita creada correctamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
-  create(@Body() createCitaDto: CreateCitaDto) {
-    return this.citasService.create(createCitaDto);
+  @ApiResponse({ status: 404, description: 'Usuario o mascota no encontrados en la clínica.' })
+  create(@Body() createCitaDto: CreateCitaDto, @CurrentUser() user: any) {
+    return this.citasService.create(createCitaDto, user.empresaId);
   }
 
   @Get()
@@ -54,8 +55,8 @@ export class CitasController {
   @ApiResponse({ status: 200, description: 'Cita actualizada correctamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
   @ApiResponse({ status: 404, description: 'Cita no encontrada.' })
-  update(@Param('id') id: string, @Body() updateCitaDto: UpdateCitaDto) {
-    return this.citasService.update(id, updateCitaDto);
+  update(@Param('id') id: string, @Body() updateCitaDto: UpdateCitaDto, @CurrentUser() user: any) {
+    return this.citasService.update(id, updateCitaDto, user.empresaId);
   }
 
   @Delete(':id')
