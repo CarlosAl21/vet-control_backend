@@ -1,6 +1,7 @@
 import { Mascota } from "src/mascotas/entities/mascota.entity";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
-import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Empresa } from "src/empresas/entities/empresa.entity";
+import { BeforeInsert, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum EstadoCita {
@@ -37,6 +38,12 @@ export class Cita {
     @ManyToOne(() => Mascota, (mascota) => mascota.citas)
     @JoinColumn({ name: 'id_mascota' })
     id_mascota: Mascota;
+
+    @ApiProperty({ type: () => Empresa, description: 'Empresa (clínica) a la que pertenece la cita', required: false })
+    @Index()
+    @ManyToOne(() => Empresa, { nullable: true })
+    @JoinColumn({ name: 'id_empresa' })
+    id_empresa: Empresa | null;
 
     @BeforeInsert()
     setEstado() {
