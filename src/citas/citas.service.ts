@@ -61,13 +61,13 @@ export class CitasService {
       .createQueryBuilder('cita')
       .leftJoinAndSelect('cita.id_mascota', 'mascota')
       .leftJoinAndSelect('cita.id_usuario', 'usuario')
-      .where('usuario.id_empresa = :empresaId', { empresaId })
+      .where('cita.id_empresa = :empresaId', { empresaId })
       .getMany();
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, empresaId: string) {
     try {
-      const cita = await this.citaRepository.findOne({ where: { id_cita: id }, relations: ['id_mascota', 'id_usuario'] });
+      const cita = await this.citaRepository.findOne({ where: this.scopedWhere(id, empresaId), relations: ['id_mascota', 'id_usuario'] });
       if (!cita) {
         throw new NotFoundException('Cita no encontrada');
       }
@@ -83,7 +83,7 @@ export class CitasService {
 
   async update(id: string, updateCitaDto: UpdateCitaDto, empresaId: string) {
     try {
-      const cita = await this.citaRepository.findOne({ where: { id_cita: id }, relations: ['id_usuario', 'id_mascota'] });
+      const cita = await this.citaRepository.findOne({ where: this.scopedWhere(id, empresaId), relations: ['id_usuario', 'id_mascota'] });
       if (!cita) {
         throw new NotFoundException('Cita no encontrada');
       }
@@ -114,9 +114,9 @@ export class CitasService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, empresaId: string) {
     try {
-      const cita = await this.citaRepository.findOne({ where: { id_cita: id } });
+      const cita = await this.citaRepository.findOne({ where: this.scopedWhere(id, empresaId) });
       if (!cita) {
         throw new NotFoundException('Cita no encontrada');
       }
@@ -128,6 +128,11 @@ export class CitasService {
       }
       throw new InternalServerErrorException('Error al eliminar la cita');
     }
+  }
+
+  // Citas of other clinics are indistinguishable from missing ones (404)
+  private scopedWhere(id: string, empresaId: string) {
+    return { id_cita: id, id_empresa: { id_empresa: empresaId } };
   }
 
   // Usuario must exist and be a cliente of the given clinic

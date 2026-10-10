@@ -42,8 +42,8 @@ export class CitasController {
   @ApiParam({ name: 'id', description: 'ID de la cita', example: 'cita-1234abcd' })
   @ApiResponse({ status: 200, description: 'Cita encontrada.' })
   @ApiResponse({ status: 404, description: 'Cita no encontrada.' })
-  findOne(@Param('id') id: string) {
-    return this.citasService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.citasService.findOne(id, user.empresaId);
   }
 
   @Patch(':id')
@@ -66,7 +66,7 @@ export class CitasController {
   @ApiParam({ name: 'id', description: 'ID de la cita a eliminar', example: 'cita-1234abcd' })
   @ApiResponse({ status: 200, description: 'Cita eliminada correctamente.' })
   @ApiResponse({ status: 404, description: 'Cita no encontrada.' })
-  remove(@Param('id') id: string) {
-    return this.citasService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.citasService.remove(id, user.empresaId);
   }
 }
