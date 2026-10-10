@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
+import { Equal } from 'typeorm';
 import { CitasService } from './citas.service';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { Mascota } from 'src/mascotas/entities/mascota.entity';
@@ -43,7 +44,7 @@ describe('CitasService.create', () => {
 
     expect(result.id_empresa).toEqual({ id_empresa: 'emp-1' });
     expect(citaRepository.manager.findOne).toHaveBeenCalledWith(Cliente, {
-      where: { id_usuario: { id_usuario: 'u-1' }, id_empresa: { id_empresa: 'emp-1' } },
+      where: { id_usuario: { id_usuario: 'u-1' }, id_empresa: Equal('emp-1') },
     });
     expect(citaRepository.manager.findOne).toHaveBeenCalledWith(Mascota, {
       where: { id_mascota: 'm-1', id_usuario: { id_usuario: 'u-1' } },

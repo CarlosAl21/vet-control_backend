@@ -3,7 +3,7 @@ import { CreateCitaDto } from './dto/create-cita.dto';
 import { UpdateCitaDto } from './dto/update-cita.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cita, EstadoCita } from './entities/cita.entity';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import { MailService } from 'src/mail/mail.service';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { Mascota } from 'src/mascotas/entities/mascota.entity';
@@ -130,9 +130,10 @@ export class CitasService {
     }
   }
 
-  // Citas of other clinics are indistinguishable from missing ones (404)
+  // Citas of other clinics are indistinguishable from missing ones (404).
+  // Equal() keeps the filter when empresaId is null; plain null keys are skipped by TypeORM.
   private scopedWhere(id: string, empresaId: string) {
-    return { id_cita: id, id_empresa: { id_empresa: empresaId } };
+    return { id_cita: id, id_empresa: Equal(empresaId) };
   }
 
   // Usuario must exist and be a cliente of the given clinic
@@ -142,7 +143,7 @@ export class CitasService {
       throw new NotFoundException('Usuario no encontrado');
     }
     const cliente = await this.citaRepository.manager.findOne(Cliente, {
-      where: { id_usuario: { id_usuario: usuarioId }, id_empresa: { id_empresa: empresaId } },
+      where: { id_usuario: { id_usuario: usuarioId }, id_empresa: Equal(empresaId) },
     });
     if (!cliente) {
       throw new NotFoundException('Usuario no encontrado');
