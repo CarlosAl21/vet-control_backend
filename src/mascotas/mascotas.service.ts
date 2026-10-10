@@ -27,10 +27,11 @@ export class MascotasService {
   }
 
   findAll(empresaId: string) {
-    return this.mascotaRepository.find({
-      where: { id_usuario: { id_empresa: { id_empresa: empresaId } } },
-      relations: ['id_usuario'],
-    });
+    return this.mascotaRepository
+      .createQueryBuilder('mascota')
+      .leftJoinAndSelect('mascota.id_usuario', 'usuario')
+      .where('usuario.id_empresa = :empresaId', { empresaId })
+      .getMany();
   }
 
   async findOne(id: string) {

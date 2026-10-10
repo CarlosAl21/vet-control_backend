@@ -55,10 +55,12 @@ export class CitasService {
   }
 
   findAll(empresaId: string) {
-    return this.citaRepository.find({
-      where: { id_usuario: { id_empresa: { id_empresa: empresaId } } },
-      relations: ['id_mascota', 'id_usuario'],
-    });
+    return this.citaRepository
+      .createQueryBuilder('cita')
+      .leftJoinAndSelect('cita.id_mascota', 'mascota')
+      .leftJoinAndSelect('cita.id_usuario', 'usuario')
+      .where('usuario.id_empresa = :empresaId', { empresaId })
+      .getMany();
   }
 
   async findOne(id: string) {

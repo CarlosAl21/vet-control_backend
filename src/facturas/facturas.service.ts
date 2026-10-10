@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Equal, In, Repository } from 'typeorm';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
 import { Factura } from './entities/factura.entity';
@@ -47,7 +47,7 @@ export class FacturasService {
 
   findAll(empresaId: string): Promise<Factura[]> {
     return this.facturaRepository.find({
-      where: { id_empresa: { id_empresa: empresaId } },
+      where: { id_empresa: Equal(empresaId) },
       relations: ['cliente', 'id_detalle_factura', 'id_usuario'],
     });
   }

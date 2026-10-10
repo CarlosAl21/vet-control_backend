@@ -4,7 +4,7 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from './entities/usuario.entity';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
-import { MoreThan, Repository } from 'typeorm';
+import { Equal, MoreThan, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import {
   BadRequestException,
@@ -122,7 +122,7 @@ async resetPasswordWithToken(token: string, newPassword: string) {
 
   async findAll(empresaId: string) {
     const usuarios = await this.usuarioRepository.find({
-      where: { id_empresa: { id_empresa: empresaId } },
+      where: { id_empresa: Equal(empresaId) },
       relations: ['id_empresa'],
     });
     return usuarios.map(({ contraseña, ...rest}) => rest); // Excluir la contraseña del resultado;

@@ -1,7 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { UsuariosService } from './usuarios.service';
 import { Usuario } from './entities/usuario.entity';
@@ -130,6 +130,16 @@ describe('UsuariosService token revocation', () => {
   it('UpdateUsuarioDto treats currentPassword as optional', async () => {
     const errors = await validate(plainToInstance(UpdateUsuarioDto, {}));
     expect(errors.map((e) => e.property)).toEqual([]);
+  });
+
+  it('findAll filters by empresa FK using Equal so the uuid is bound as a scalar', async () => {
+    (repository as any).find = jest.fn().mockResolvedValue([]);
+
+    await service.findAll('empresa-1');
+
+    expect((repository as any).find).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id_empresa: Equal('empresa-1') } }),
+    );
   });
 
   describe('create relation ids', () => {
