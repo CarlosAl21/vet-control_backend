@@ -1,21 +1,4 @@
 import { DetalleFacturaService } from './detalle_facturas.service';
-import { Test, TestingModule } from '@nestjs/testing';
-
-describe('DetalleFacturaService', () => {
-  let service: DetalleFacturaService;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [DetalleFacturaService],
-    }).compile();
-
-    service = module.get<DetalleFacturaService>(DetalleFacturaService);
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
 
 const mockRepo = () => ({
   findOne: jest.fn(),
