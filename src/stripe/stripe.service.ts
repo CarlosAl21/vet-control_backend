@@ -150,6 +150,7 @@ export class StripeService {
 
   // Método específico para aplicaciones web - Checkout Session
   async createCheckoutSession(body: { amount: number; currency: string; invoiceId?: string; successUrl?: string; cancelUrl?: string }) {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
     try {
       const session = await this.stripe.checkout.sessions.create({
         payment_method_types: ['card'],
@@ -164,8 +165,8 @@ export class StripeService {
           },
         ],
         mode: 'payment',
-        success_url: body.successUrl || process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/success` : 'http://localhost:4200/success',
-        cancel_url: body.cancelUrl || process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/cancel` : 'http://localhost:4200/cancel',
+        success_url: body.successUrl || `${frontendUrl}/success`,
+        cancel_url: body.cancelUrl || `${frontendUrl}/cancel`,
         metadata: {
           source: 'VetControl Web',
           platform: 'web',
