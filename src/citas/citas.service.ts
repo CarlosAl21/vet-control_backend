@@ -85,7 +85,29 @@ export class CitasService {
       if (!cita) {
         throw new NotFoundException('Cita no encontrada');
       }
-      Object.assign(cita, updateCitaDto);
+
+      const { usuarioId, mascotaId, estado, ...restDto } = updateCitaDto;
+
+      if (usuarioId) {
+        const usuario = await this.citaRepository.manager.findOne(Usuario, { where: { id_usuario: usuarioId } });
+        if (!usuario) {
+          throw new NotFoundException('Usuario no encontrado');
+        }
+        cita.id_usuario = usuario;
+      }
+
+      if (mascotaId) {
+        const mascota = await this.citaRepository.manager.findOne(Mascota, { where: { id_mascota: mascotaId } });
+        if (!mascota) {
+          throw new NotFoundException('Mascota no encontrada');
+        }
+        cita.id_mascota = mascota;
+      }
+
+      Object.assign(cita, restDto);
+      if (estado) {
+        cita.estado = estado as EstadoCita;
+      }
       return await this.citaRepository.save(cita);
     } catch (error) {
       console.error('Error al actualizar la cita:', error);
