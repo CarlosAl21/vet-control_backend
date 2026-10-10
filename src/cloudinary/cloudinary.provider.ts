@@ -1,15 +1,15 @@
-import {v2 as cloudinary} from 'cloudinary';
+import { ConfigService } from '@nestjs/config';
+import { v2 as cloudinary } from 'cloudinary';
 
 export const CloudinaryProvider = {
-    provide:'CLOUDINARY',
-    useFactory: () =>{
-        return cloudinary.config(
-            {
-                cloud_name: 'dvqf8smev',
-                api_key: '635562132924635',
-                api_secret: 'r31WQh8N5_2OV3D54ria-l_AKeo'
-            }
-        )
-    }
-        
-}
+  provide: 'CLOUDINARY',
+  inject: [ConfigService],
+  // Throws at boot when any Cloudinary credential is missing
+  useFactory: (configService: ConfigService) => {
+    return cloudinary.config({
+      cloud_name: configService.getOrThrow<string>('CLOUDINARY_CLOUD_NAME'),
+      api_key: configService.getOrThrow<string>('CLOUDINARY_API_KEY'),
+      api_secret: configService.getOrThrow<string>('CLOUDINARY_API_SECRET'),
+    });
+  },
+};
