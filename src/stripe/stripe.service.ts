@@ -223,7 +223,6 @@ export class StripeService {
     if (isNaN(id)) return;
 
     await this.facturasService.update(id, {
-      id_factura: id,
       estado: 'pagado',
       metodo_pago: 'Stripe',
     });
@@ -237,7 +236,6 @@ export class StripeService {
     if (isNaN(id)) return;
 
     await this.facturasService.update(id, {
-      id_factura: id,
       estado: 'pagado',
       metodo_pago: 'Stripe',
     });
