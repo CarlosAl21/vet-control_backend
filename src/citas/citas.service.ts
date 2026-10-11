@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { CreateCitaDto } from './dto/create-cita.dto';
 import { UpdateCitaDto } from './dto/update-cita.dto';
+import { CreateOwnerCitaDto } from './dto/create-owner-cita.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cita, EstadoCita } from './entities/cita.entity';
 import { Equal, Repository } from 'typeorm';
@@ -34,18 +35,38 @@ export class CitasService {
         id_empresa: { id_empresa: empresaId } as Empresa,
       });
       const citaGuardada = await this.citaRepository.save(nuevaCita) as unknown as Cita;
-
-      // Enviar correo de confirmación al usuario
-      if (citaGuardada.id_usuario && citaGuardada.id_usuario.email) {
-        await this.mailService.sendReservationConfirmation(
-          citaGuardada.id_usuario.email,
-          {
-            name: `${citaGuardada.id_usuario.nombre} ${citaGuardada.id_usuario.apellido}`,
-            reservationId: citaGuardada.id_cita,
-          }
-        );
+      await this.sendReservationConfirmation(citaGuardada);
+      return citaGuardada;
+    } catch (error) {
+      console.error('Error al crear la cita:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
       }
+      throw new InternalServerErrorException('Error al crear la cita');
+    }
+  }
 
+  // Owner booking: usuario is the caller, the clinic must have the caller as cliente,
+  // and the mascota must belong to the caller. Every failure is a 404 (no existence oracle).
+  async createForOwner(createOwnerCitaDto: CreateOwnerCitaDto, userId: string) {
+    try {
+      if (!userId) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+      const { fecha_hora, motivo, mascotaId, empresaId } = createOwnerCitaDto;
+      const usuario = await this.findClienteUsuario(userId, empresaId);
+      const mascota = await this.findMascotaOfUsuario(mascotaId, usuario.id_usuario);
+
+      // Estado is forced to Pendiente by the entity @BeforeInsert hook
+      const nuevaCita = this.citaRepository.create({
+        fecha_hora,
+        motivo,
+        id_usuario: usuario,
+        id_mascota: mascota,
+        id_empresa: { id_empresa: empresaId } as Empresa,
+      });
+      const citaGuardada = await this.citaRepository.save(nuevaCita) as unknown as Cita;
+      await this.sendReservationConfirmation(citaGuardada);
       return citaGuardada;
     } catch (error) {
       console.error('Error al crear la cita:', error);
@@ -154,6 +175,19 @@ export class CitasService {
   // Equal() keeps the filter when empresaId is null; plain null keys are skipped by TypeORM.
   private scopedWhere(id: string, empresaId: string) {
     return { id_cita: id, id_empresa: Equal(empresaId) };
+  }
+
+  // Enviar correo de confirmación al usuario
+  private async sendReservationConfirmation(cita: Cita) {
+    if (cita.id_usuario && cita.id_usuario.email) {
+      await this.mailService.sendReservationConfirmation(
+        cita.id_usuario.email,
+        {
+          name: `${cita.id_usuario.nombre} ${cita.id_usuario.apellido}`,
+          reservationId: cita.id_cita,
+        }
+      );
+    }
   }
 
   // Citas of other usuarios are indistinguishable from missing ones (404).
