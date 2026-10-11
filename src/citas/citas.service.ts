@@ -81,6 +81,26 @@ export class CitasService {
     }
   }
 
+  // Owner reads: only citas booked for the caller. The usuario relation is the caller itself, so it is not loaded.
+  findAllForOwner(userId: string) {
+    return this.citaRepository.find({
+      where: this.ownerWhere(userId),
+      relations: ['id_mascota', 'id_empresa'],
+      order: { fecha_hora: 'DESC' },
+    });
+  }
+
+  async findOneForOwner(id: string, userId: string) {
+    const cita = await this.citaRepository.findOne({
+      where: { id_cita: id, ...this.ownerWhere(userId) },
+      relations: ['id_mascota', 'id_empresa'],
+    });
+    if (!cita) {
+      throw new NotFoundException('Cita no encontrada');
+    }
+    return cita;
+  }
+
   async update(id: string, updateCitaDto: UpdateCitaDto, empresaId: string) {
     try {
       const cita = await this.citaRepository.findOne({ where: this.scopedWhere(id, empresaId), relations: ['id_usuario', 'id_mascota'] });
@@ -134,6 +154,12 @@ export class CitasService {
   // Equal() keeps the filter when empresaId is null; plain null keys are skipped by TypeORM.
   private scopedWhere(id: string, empresaId: string) {
     return { id_cita: id, id_empresa: Equal(empresaId) };
+  }
+
+  // Citas of other usuarios are indistinguishable from missing ones (404).
+  // Equal() keeps the filter even if userId is missing.
+  private ownerWhere(userId: string) {
+    return { id_usuario: { id_usuario: Equal(userId) } };
   }
 
   // Usuario must exist and be a cliente of the given clinic

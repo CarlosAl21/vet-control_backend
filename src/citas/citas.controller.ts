@@ -35,6 +35,27 @@ export class CitasController {
     return this.citasService.findAll(user.empresaId);
   }
 
+  // Owner routes are declared before ':id' so 'mine' is not captured as a cita id.
+  @Get('mine')
+  @UseGuards(RolesGuard)
+  @Roles(Role.USUARIO)
+  @ApiOperation({ summary: 'Obtener las citas del dueño autenticado' })
+  @ApiResponse({ status: 200, description: 'Lista de citas del dueño.' })
+  findAllMine(@CurrentUser() user: any) {
+    return this.citasService.findAllForOwner(user.userId);
+  }
+
+  @Get('mine/:id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.USUARIO)
+  @ApiOperation({ summary: 'Obtener una cita propia por ID' })
+  @ApiParam({ name: 'id', description: 'ID de la cita', example: 'cita-1234abcd' })
+  @ApiResponse({ status: 200, description: 'Cita encontrada.' })
+  @ApiResponse({ status: 404, description: 'Cita no encontrada.' })
+  findOneMine(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.citasService.findOneForOwner(id, user.userId);
+  }
+
   @Get(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.VETERINARIO, Role.RECEPCIONISTA)
