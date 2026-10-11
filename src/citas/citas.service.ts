@@ -192,8 +192,10 @@ export class CitasService {
 
   // Citas of other usuarios are indistinguishable from missing ones (404).
   // Equal() keeps the filter even if userId is missing.
+  // Relations are filtered flat (id_usuario: Equal(id)): the nested form { id_usuario: { id_usuario } }
+  // fails in Postgres because the relation property shares its name with the FK column.
   private ownerWhere(userId: string) {
-    return { id_usuario: { id_usuario: Equal(userId) } };
+    return { id_usuario: Equal(userId) };
   }
 
   // Usuario must exist and be a cliente of the given clinic
@@ -203,7 +205,7 @@ export class CitasService {
       throw new NotFoundException('Usuario no encontrado');
     }
     const cliente = await this.citaRepository.manager.findOne(Cliente, {
-      where: { id_usuario: { id_usuario: usuarioId }, id_empresa: Equal(empresaId) },
+      where: { id_usuario: Equal(usuarioId), id_empresa: Equal(empresaId) },
     });
     if (!cliente) {
       throw new NotFoundException('Usuario no encontrado');
@@ -215,7 +217,7 @@ export class CitasService {
   private async findMascotaOfUsuario(mascotaId: string | undefined, usuarioId: string | undefined): Promise<Mascota> {
     const mascota = mascotaId && usuarioId
       ? await this.citaRepository.manager.findOne(Mascota, {
-          where: { id_mascota: mascotaId, id_usuario: { id_usuario: usuarioId } },
+          where: { id_mascota: mascotaId, id_usuario: Equal(usuarioId) },
         })
       : null;
     if (!mascota) {

@@ -48,7 +48,7 @@ describe('CitasService owner reads', () => {
 
       expect(result).toBe(citas);
       expect(citaRepository.find).toHaveBeenCalledWith({
-        where: { id_usuario: { id_usuario: Equal('u-1') } },
+        where: { id_usuario: Equal('u-1') },
         relations: ['id_mascota', 'id_empresa'],
         order: { fecha_hora: 'DESC' },
       });
@@ -60,7 +60,7 @@ describe('CitasService owner reads', () => {
       await service.findAllForOwner(undefined as unknown as string);
 
       expect(citaRepository.find).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { id_usuario: { id_usuario: Equal(undefined) } } }),
+        expect.objectContaining({ where: { id_usuario: Equal(undefined) } }),
       );
     });
   });
@@ -74,7 +74,7 @@ describe('CitasService owner reads', () => {
 
       expect(result).toBe(cita);
       expect(citaRepository.findOne).toHaveBeenCalledWith({
-        where: { id_cita: 'cita-1', id_usuario: { id_usuario: Equal('u-1') } },
+        where: { id_cita: 'cita-1', id_usuario: Equal('u-1') },
         relations: ['id_mascota', 'id_empresa'],
       });
     });
@@ -134,10 +134,10 @@ describe('CitasService.createForOwner', () => {
     await service.createForOwner(dto, 'u-1');
 
     expect(citaRepository.manager.findOne).toHaveBeenCalledWith(Cliente, {
-      where: { id_usuario: { id_usuario: 'u-1' }, id_empresa: Equal('emp-1') },
+      where: { id_usuario: Equal('u-1'), id_empresa: Equal('emp-1') },
     });
     expect(citaRepository.manager.findOne).toHaveBeenCalledWith(Mascota, {
-      where: { id_mascota: 'm-1', id_usuario: { id_usuario: 'u-1' } },
+      where: { id_mascota: 'm-1', id_usuario: Equal('u-1') },
     });
   });
 

@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
+import { Equal } from 'typeorm';
 import { CitasService } from './citas.service';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { Mascota } from 'src/mascotas/entities/mascota.entity';
@@ -40,7 +41,7 @@ describe('CitasService.update', () => {
     expect(result).not.toHaveProperty('usuarioId');
     expect(result).not.toHaveProperty('mascotaId');
     expect(citaRepository.manager.findOne).toHaveBeenCalledWith(Mascota, {
-      where: { id_mascota: 'm-new', id_usuario: { id_usuario: 'u-new' } },
+      where: { id_mascota: 'm-new', id_usuario: Equal('u-new') },
     });
   });
 
@@ -69,7 +70,7 @@ describe('CitasService.update', () => {
     await service.update('cita-1', { mascotaId: 'm-new' }, 'emp-1');
 
     expect(citaRepository.manager.findOne).toHaveBeenCalledWith(Mascota, {
-      where: { id_mascota: 'm-new', id_usuario: { id_usuario: 'u-old' } },
+      where: { id_mascota: 'm-new', id_usuario: Equal('u-old') },
     });
   });
 
@@ -85,7 +86,7 @@ describe('CitasService.update', () => {
 
     await expect(service.update('cita-1', { usuarioId: 'u-new' }, 'emp-1')).rejects.toBeInstanceOf(NotFoundException);
     expect(citaRepository.manager.findOne).toHaveBeenCalledWith(Mascota, {
-      where: { id_mascota: 'm-old', id_usuario: { id_usuario: 'u-new' } },
+      where: { id_mascota: 'm-old', id_usuario: Equal('u-new') },
     });
     expect(citaRepository.save).not.toHaveBeenCalled();
   });
