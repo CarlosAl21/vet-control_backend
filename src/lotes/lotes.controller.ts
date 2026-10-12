@@ -20,8 +20,10 @@ export class LotesController {
   @ApiBody({ type: CreateLoteDto })
   @ApiResponse({ status: 201, description: 'Lote creado correctamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
-  create(@Body() dto: CreateLoteDto) {
-    return this.lotesService.create(dto);
+  @ApiResponse({ status: 403, description: 'Usuario sin empresa.' })
+  @ApiResponse({ status: 404, description: 'Producto o proveedor no encontrado.' })
+  create(@Body() dto: CreateLoteDto, @CurrentUser() user: any) {
+    return this.lotesService.create(dto, user.empresaId);
   }
 
   @Get()
@@ -40,8 +42,8 @@ export class LotesController {
   @ApiParam({ name: 'id', description: 'ID del lote', example: 'lote123' })
   @ApiResponse({ status: 200, description: 'Lote encontrado.' })
   @ApiResponse({ status: 404, description: 'Lote no encontrado.' })
-  findOne(@Param('id') id: string) {
-    return this.lotesService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.lotesService.findOne(id, user.empresaId);
   }
 
   @Patch(':id')
@@ -53,8 +55,8 @@ export class LotesController {
   @ApiResponse({ status: 200, description: 'Lote actualizado correctamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
   @ApiResponse({ status: 404, description: 'Lote no encontrado.' })
-  update(@Param('id') id: string, @Body() dto: UpdateLoteDto) {
-    return this.lotesService.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateLoteDto, @CurrentUser() user: any) {
+    return this.lotesService.update(id, dto, user.empresaId);
   }
 
   @Delete(':id')
@@ -64,7 +66,7 @@ export class LotesController {
   @ApiParam({ name: 'id', description: 'ID del lote a eliminar', example: 'lote123' })
   @ApiResponse({ status: 200, description: 'Lote eliminado correctamente.' })
   @ApiResponse({ status: 404, description: 'Lote no encontrado.' })
-  remove(@Param('id') id: string) {
-    return this.lotesService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.lotesService.remove(id, user.empresaId);
   }
 }
