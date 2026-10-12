@@ -134,9 +134,12 @@ export class LotesService {
     }
   }
 
-  async descontarStock(id_lote: string, cantidad: number): Promise<void> {
+  async descontarStock(id_lote: string, cantidad: number, empresaId: string | null): Promise<void> {
     try {
-      const lote = await this.loteRepository.findOne({where: { id_lote: id_lote }});
+      // Equal() keeps the tenant filter even when empresaId is null (no rows -> 404).
+      const lote = await this.loteRepository.findOne({
+        where: { id_lote: Equal(id_lote), id_empresa: Equal(empresaId) },
+      });
       if (!lote) {
         throw new NotFoundException('Lote no encontrado');
       }
