@@ -53,11 +53,7 @@ export class DetalleFacturaService {
   }
 
   findAll(empresaId: string | null) {
-    // Equal() keeps the tenant filter even when empresaId is null (no rows).
-    return this.detalleRepo.find({
-      where: { id_factura: { id_empresa: Equal(empresaId) } },
-      relations: ['id_factura', 'id_lote'],
-    });
+    return this.scopedQuery(empresaId).getMany();
   }
 
   async findOne(id: string, empresaId: string | null) {
@@ -109,14 +105,26 @@ export class DetalleFacturaService {
     }
   }
 
+  /**
+   * Details of the caller's clinic, reached through the factura, with the same
+   * relations the responses always carried (id_factura, id_lote).
+   * A find-where nested through `id_factura` cannot be used: the relation shares its
+   * name with the FK column, so TypeORM sends the nested object as the integer FK value.
+   * A null empresaId compiles to `= NULL`, which matches no rows.
+   */
+  private scopedQuery(empresaId: string | null) {
+    return this.detalleRepo
+      .createQueryBuilder('detalle')
+      .innerJoinAndSelect('detalle.id_factura', 'factura')
+      .leftJoinAndSelect('detalle.id_lote', 'lote')
+      .where('factura.id_empresa = :empresaId', { empresaId });
+  }
+
   // Details of other clinics are indistinguishable from missing ones (404).
-  // The clinic is reached through the factura; Equal() on its id_empresa relation
-  // compares the FK column directly instead of joining empresa by a same-name property.
   private async findOwned(id: string, empresaId: string | null): Promise<DetalleFactura> {
-    const detalle = await this.detalleRepo.findOne({
-      where: { id_detalle: Equal(id), id_factura: { id_empresa: Equal(empresaId) } },
-      relations: ['id_factura', 'id_lote'],
-    });
+    const detalle = await this.scopedQuery(empresaId)
+      .andWhere('detalle.id_detalle = :id', { id })
+      .getOne();
     if (!detalle) {
       throw new NotFoundException('Detalle de factura no encontrado');
     }
