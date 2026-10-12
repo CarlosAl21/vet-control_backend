@@ -27,8 +27,10 @@ export class FacturasController {
   @ApiBody({ type: CreateFacturaDto })
   @ApiResponse({ status: 201, description: 'Factura creada exitosamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos para crear factura.' })
-  create(@Body() createFacturaDto: CreateFacturaDto) {
-    return this.facturasService.create(createFacturaDto);
+  @ApiResponse({ status: 403, description: 'Usuario sin empresa.' })
+  @ApiResponse({ status: 404, description: 'Cliente no encontrado.' })
+  create(@Body() createFacturaDto: CreateFacturaDto, @CurrentUser() user: any) {
+    return this.facturasService.create(createFacturaDto, user.empresaId);
   }
 
   @Get()
@@ -47,17 +49,18 @@ export class FacturasController {
   @ApiParam({ name: 'id', description: 'ID de la factura', example: 'uuid-factura-1234' })
   @ApiResponse({ status: 200, description: 'Factura encontrada y retornada.' })
   @ApiResponse({ status: 404, description: 'Factura no encontrada.' })
-  findOne(@Param('id') id: string) {
-    return this.facturasService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.facturasService.findOne(id, user.empresaId);
   }
 
   @Get('empresa/:id_empresa')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.RECEPCIONISTA)
-  @ApiOperation({ summary: 'Obtener todas las facturas o filtrar por empresa' })
+  @ApiOperation({ summary: 'Obtener las facturas de la empresa del usuario autenticado' })
   @ApiResponse({ status: 200, description: 'Lista de facturas retornada.' })
-  findByEmpresa(@Param('id_empresa') id_empresa: string) {
-    return this.facturasService.findByEmpresa(id_empresa);
+  @ApiResponse({ status: 404, description: 'Empresa no encontrada.' })
+  findByEmpresa(@Param('id_empresa') id_empresa: string, @CurrentUser() user: any) {
+    return this.facturasService.findByEmpresa(id_empresa, user.empresaId);
   }
 
   @Patch(':id')
@@ -69,8 +72,12 @@ export class FacturasController {
   @ApiResponse({ status: 200, description: 'Factura actualizada exitosamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos para actualizar la factura.' })
   @ApiResponse({ status: 404, description: 'Factura no encontrada.' })
-  update(@Param('id') id: number, @Body() updateFacturaDto: UpdateFacturaDto) {
-    return this.facturasService.update(id, updateFacturaDto);
+  update(
+    @Param('id') id: number,
+    @Body() updateFacturaDto: UpdateFacturaDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.facturasService.update(id, updateFacturaDto, user.empresaId);
   }
 
   @Delete(':id')
@@ -80,8 +87,8 @@ export class FacturasController {
   @ApiParam({ name: 'id', description: 'ID de la factura a eliminar', example: 'uuid-factura-1234' })
   @ApiResponse({ status: 200, description: 'Factura eliminada exitosamente.' })
   @ApiResponse({ status: 404, description: 'Factura no encontrada.' })
-  remove(@Param('id') id: string) {
-    return this.facturasService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.facturasService.remove(id, user.empresaId);
   }
 
   @Get('usuario/:id_usuario')

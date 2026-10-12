@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,7 +12,6 @@ import { UpdateFacturaDto } from './dto/update-factura.dto';
 import { Factura } from './entities/factura.entity';
 import { Cliente } from 'src/clientes/entities/cliente.entity';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
-import e from 'express';
 import { MailService } from 'src/mail/mail.service';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 
@@ -29,9 +29,15 @@ export class FacturasService {
     private readonly usuarioRepository: Repository<Usuario>,
   ) {}
 
-  async create(createFacturaDto: CreateFacturaDto) {
-    const { id_cliente, ...rest } = createFacturaDto;
-    const cliente = await this.findCliente(id_cliente);
+  async create(createFacturaDto: CreateFacturaDto, empresaId: string | null) {
+    if (!empresaId) {
+      throw new ForbiddenException('El usuario no pertenece a ninguna empresa');
+    }
+
+    // The tenant always comes from the JWT; any body id_empresa is discarded.
+    const { id_cliente, ...rest } = createFacturaDto as CreateFacturaDto & { id_empresa?: unknown };
+    delete (rest as { id_empresa?: unknown }).id_empresa;
+    const cliente = await this.findCliente(id_cliente, empresaId);
 
     // Usa el valor en minúsculas 'pendiente' para estado por defecto
     const estado = createFacturaDto.estado || 'pendiente';
@@ -40,6 +46,7 @@ export class FacturasService {
       ...rest,
       cliente, // Aquí va cliente, no id_cliente
       estado,
+      id_empresa: { id_empresa: empresaId },
     });
 
     return this.facturaRepository.save(nuevaFactura);
@@ -52,7 +59,11 @@ export class FacturasService {
     });
   }
 
-  async findOne(id: string): Promise<Factura> {
+  async findOne(
+    id: string | number,
+    empresaId: string | null,
+    relations: string[] = ['cliente', 'id_empresa'],
+  ): Promise<Factura> {
     try {
       const idFactura = Number(id);
 
@@ -62,9 +73,10 @@ export class FacturasService {
         );
       }
 
+      // Equal() keeps the tenant filter even when empresaId is null (no rows -> 404).
       const factura = await this.facturaRepository.findOne({
-        where: { id_factura: idFactura },
-        relations: ['cliente', 'id_empresa'],
+        where: { id_factura: idFactura, id_empresa: Equal(empresaId) },
+        relations,
       });
 
       if (!factura) {
@@ -84,51 +96,58 @@ export class FacturasService {
     }
   }
 
-  async update(id: number, updateFacturaDto: UpdateFacturaDto): Promise<Factura> {
+  async update(
+    id: number,
+    updateFacturaDto: UpdateFacturaDto,
+    empresaId: string | null,
+  ): Promise<Factura> {
+    // cliente.id_usuario is needed for the payment confirmation email.
+    const factura = await this.findOne(id, empresaId, ['cliente', 'cliente.id_usuario', 'id_empresa']);
+
+    const { id_cliente, ...rest } = updateFacturaDto as UpdateFacturaDto & { id_empresa?: unknown };
+    delete (rest as { id_empresa?: unknown }).id_empresa;
+    if (id_cliente) {
+      factura.cliente = await this.findCliente(id_cliente, empresaId as string);
+    }
+    const facturaUpdate = this.facturaRepository.merge(factura, rest);
+    return this.saveAndNotify(facturaUpdate);
+  }
+
+  /**
+   * System-only path for payment providers (Stripe webhook): there is no user,
+   * so it is not scoped to a clinic and must never be exposed through a controller.
+   * Returns null when the factura does not exist so the webhook does not fail.
+   */
+  async markPaid(id: number, metodoPago?: string): Promise<Factura | null> {
     const factura = await this.facturaRepository.findOne({
       where: { id_factura: id },
       relations: ['cliente', 'cliente.id_usuario', 'id_empresa'],
     });
-
-    if (updateFacturaDto.estado) {
-      factura.estado = updateFacturaDto.estado;
+    if (!factura) {
+      console.error(`markPaid: factura ${id} no encontrada`);
+      return null;
     }
 
-    const { id_cliente, ...rest } = updateFacturaDto;
-    const facturaUpdate = this.facturaRepository.merge(factura, rest);
-    if (id_cliente) {
-      facturaUpdate.cliente = await this.findCliente(id_cliente);
+    factura.estado = 'pagado';
+    if (metodoPago) {
+      factura.metodo_pago = metodoPago;
     }
-    const facturaGuardada = await this.facturaRepository.save(facturaUpdate);
-    console.log("Factura actualizada", facturaGuardada);
-    console.log("Cliente con usuario:", facturaGuardada.cliente);
-
-    // Si el estado es "pagado", enviar correo de confirmación al cliente
-    if (facturaGuardada.estado === 'pagado' && facturaGuardada.cliente?.id_usuario?.email) {
-      await this.mailService.sendPaymentConfirmation(
-        facturaGuardada.cliente.id_usuario.email,
-        {
-          name: `${facturaGuardada.cliente.id_usuario.nombre} ${facturaGuardada.cliente.id_usuario.apellido}`,
-          amount: facturaGuardada.total,
-          paymentId: facturaGuardada.id_factura,
-        }
-      );
-    }
-
-    return facturaGuardada;
+    return this.saveAndNotify(factura);
   }
 
-  async remove(id: string): Promise<void> {
-    const factura = await this.findOne(id);
+  async remove(id: string, empresaId: string | null): Promise<void> {
+    const factura = await this.findOne(id, empresaId);
     await this.facturaRepository.remove(factura);
   }
 
-  async findByEmpresa(id_empresa: string) {
-    const empresaEntity = await this.empresaRepository.findOne({
-      where: { id_empresa },
-      relations: ['facturas'], // Asegúrate de que la relación esté definida en la entidad Empresa
+  async findByEmpresa(id_empresa: string, empresaId: string | null): Promise<Factura[]> {
+    // The route keeps its URL param for the web front, but only the caller's clinic is served.
+    if (!empresaId || id_empresa !== empresaId) {
+      throw new NotFoundException('Empresa no encontrada');
+    }
+    return this.facturaRepository.find({
+      where: { id_empresa: Equal(empresaId) },
     });
-    return empresaEntity.facturas; // Retorna las facturas asociadas a la empresa
   }
 
   async findByUserId(id_usuario: string) {
@@ -162,9 +181,27 @@ export class FacturasService {
   }
     
 
-  private async findCliente(id_cliente: string): Promise<Cliente> {
+  private async saveAndNotify(factura: Factura): Promise<Factura> {
+    const facturaGuardada = await this.facturaRepository.save(factura);
+
+    // Si el estado es "pagado", enviar correo de confirmación al cliente
+    if (facturaGuardada.estado === 'pagado' && facturaGuardada.cliente?.id_usuario?.email) {
+      await this.mailService.sendPaymentConfirmation(
+        facturaGuardada.cliente.id_usuario.email,
+        {
+          name: `${facturaGuardada.cliente.id_usuario.nombre} ${facturaGuardada.cliente.id_usuario.apellido}`,
+          amount: facturaGuardada.total,
+          paymentId: facturaGuardada.id_factura,
+        }
+      );
+    }
+
+    return facturaGuardada;
+  }
+
+  private async findCliente(id_cliente: string, empresaId: string): Promise<Cliente> {
     const cliente = await this.clienteRepository.findOne({
-      where: { id_cliente },
+      where: { id_cliente: Equal(id_cliente), id_empresa: Equal(empresaId) },
     });
     if (!cliente) {
       throw new NotFoundException('Cliente no encontrado');

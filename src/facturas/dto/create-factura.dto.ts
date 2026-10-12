@@ -1,7 +1,6 @@
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { Empresa } from 'src/empresas/entities/empresa.entity';
 
 export class CreateFacturaDto {
   @ApiProperty({
@@ -36,13 +35,6 @@ export class CreateFacturaDto {
   @IsString()
   @IsNotEmpty()
   id_cliente: string;
-
-  @ApiProperty({
-    example: 'uuid-empresa-5678',
-    description: 'ID de la empresa que emite la factura',
-  })
-  @IsNotEmpty()
-  id_empresa: Empresa;
 
   @IsOptional()
   @IsIn(['pagado', 'pendiente', 'anulado'])

@@ -223,10 +223,7 @@ export class StripeService {
     const id = parseInt(invoiceId, 10);
     if (isNaN(id)) return;
 
-    await this.facturasService.update(id, {
-      estado: 'pagado',
-      metodo_pago: 'Stripe',
-    });
+    await this.facturasService.markPaid(id, 'Stripe');
   }
 
   async handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
@@ -236,10 +233,7 @@ export class StripeService {
     const id = parseInt(invoiceId, 10);
     if (isNaN(id)) return;
 
-    await this.facturasService.update(id, {
-      estado: 'pagado',
-      metodo_pago: 'Stripe',
-    });
+    await this.facturasService.markPaid(id, 'Stripe');
   }
 
   // Método para crear un customer permanente
