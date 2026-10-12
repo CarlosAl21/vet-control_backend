@@ -1,7 +1,6 @@
 import { Type } from "class-transformer";
 import { IsDate, IsNotEmpty, IsNumber, IsString } from "class-validator";
 import { ApiProperty } from '@nestjs/swagger';
-import { Empresa } from "src/empresas/entities/empresa.entity";
 import { Producto } from "src/productos/entities/producto.entity";
 import { Proveedor } from "src/proveedores/entities/proveedor.entity";
 
@@ -61,11 +60,4 @@ export class CreateLoteDto {
   })
   @IsNotEmpty()
   id_proveedor: Proveedor;
-
-  @ApiProperty({
-    example: { id: 'emp123' },
-    description: 'Empresa propietaria del lote',
-  })
-  @IsNotEmpty()
-  id_empresa: Empresa;
 }
