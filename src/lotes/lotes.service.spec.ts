@@ -189,4 +189,28 @@ describe('LotesService clinic scope', () => {
       expect(repo.remove).not.toHaveBeenCalled();
     });
   });
+
+  describe('descontarStock', () => {
+    it('scopes the lote lookup to the JWT empresa and decrements stock', async () => {
+      const repo = mockRepo();
+      repo.findOne.mockResolvedValue({ ...ownedLote(), stock_actual: 5 });
+      const service = new LotesService(repo as any);
+
+      await service.descontarStock('lote-1', 2, 'emp-1');
+
+      expect(repo.findOne).toHaveBeenCalledWith({
+        where: { id_lote: Equal('lote-1'), id_empresa: Equal('emp-1') },
+      });
+      expect(repo.save).toHaveBeenCalledWith(expect.objectContaining({ stock_actual: 3, estado: 'activo' }));
+    });
+
+    it('throws NotFoundException for a lote from another clinic and does not save', async () => {
+      const repo = mockRepo();
+      repo.findOne.mockResolvedValue(null);
+      const service = new LotesService(repo as any);
+
+      await expect(service.descontarStock('lote-1', 2, 'emp-2')).rejects.toBeInstanceOf(NotFoundException);
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+  });
 });
