@@ -40,14 +40,6 @@ export class CreateLoteDto {
   stock_actual: number;
 
   @ApiProperty({
-    example: 'Activo',
-    description: 'Estado del lote',
-  })
-  @IsString()
-  @IsNotEmpty()
-  estado: string;
-
-  @ApiProperty({
     example: { id: 'prod123' },
     description: 'Producto asociado al lote',
   })

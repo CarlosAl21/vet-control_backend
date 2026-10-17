@@ -27,8 +27,10 @@ export class LotesService {
       }
 
       // The tenant always comes from the JWT; any body id_empresa is discarded.
-      const { id_producto, id_proveedor, ...rest } = dto as CreateLoteDto & { id_empresa?: unknown };
+      const { id_producto, id_proveedor, ...rest } = dto as CreateLoteDto & { id_empresa?: unknown; estado?: unknown };
       delete (rest as { id_empresa?: unknown }).id_empresa;
+      // estado is derived by the backend; a client value is never trusted.
+      delete (rest as { estado?: unknown }).estado;
 
       const productoId = await this.resolveProducto(id_producto, empresaId);
       const proveedorId = await this.resolveProveedor(id_proveedor, empresaId);
@@ -40,13 +42,14 @@ export class LotesService {
 
       const lote = this.loteRepository.create({
         ...rest,
-        estado, // fuerza el estado basado en la fecha
+        estado, // derived from fecha_venc
         id_producto: { id_producto: productoId },
         id_proveedor: { id_proveedor: proveedorId },
         id_empresa: { id_empresa: empresaId },
       });
 
-      return await this.loteRepository.save(lote);
+      const saved = await this.loteRepository.save(lote);
+      return await this.findOne(saved.id_lote, empresaId);
     } catch (error) {
       console.error('Error al crear el lote:', error);
       if (error instanceof NotFoundException || error instanceof ForbiddenException) {
@@ -58,10 +61,11 @@ export class LotesService {
 
   async findAll(empresaId: string): Promise<Lote[]> {
     try {
-      return await this.loteRepository.find({
+      const lotes = await this.loteRepository.find({
         where: { id_empresa: Equal(empresaId) },
         relations: ['id_producto', 'id_proveedor', 'id_empresa'],
       });
+      return lotes.map((lote) => this.withDerivedEstado(lote));
     } catch (error) {
       console.error('Error al obtener los lotes:', error);
       throw new InternalServerErrorException('Error al obtener los lotes');
@@ -69,6 +73,11 @@ export class LotesService {
   }
 
   async findOne(id: string, empresaId: string | null): Promise<Lote> {
+    return this.withDerivedEstado(await this.findOwned(id, empresaId));
+  }
+
+  /** Loads the persisted lote; its estado is never derived, so it is safe to save back. */
+  private async findOwned(id: string, empresaId: string | null): Promise<Lote> {
     try {
       // Equal() keeps the tenant filter even when empresaId is null (no rows -> 404).
       const lote = await this.loteRepository.findOne({
@@ -76,15 +85,6 @@ export class LotesService {
         relations: ['id_producto', 'id_proveedor', 'id_empresa'],
       });
       if (!lote) throw new NotFoundException('Lote no encontrado');
-
-      const now = new Date();
-      const vencido = new Date(lote.fecha_venc) < now;
-      const nuevoEstado = vencido ? EstadoLote.VENCIDO : EstadoLote.ACTIVO;
-
-      if (lote.estado !== nuevoEstado) {
-        lote.estado = nuevoEstado;
-        await this.loteRepository.save(lote);
-      }
       return lote;
     } catch (error) {
       console.error('Error al buscar el lote:', error);
@@ -95,11 +95,20 @@ export class LotesService {
     }
   }
 
+  /** Reports an expired active lote as vencido in responses without persisting it. */
+  private withDerivedEstado(lote: Lote): Lote {
+    if (lote.estado === EstadoLote.ACTIVO && new Date(lote.fecha_venc) < new Date()) {
+      lote.estado = EstadoLote.VENCIDO;
+    }
+    return lote;
+  }
+
   async update(id: string, dto: UpdateLoteDto, empresaId: string | null): Promise<Lote> {
     try {
-      const lote = await this.findOne(id, empresaId);
-      const { id_producto, id_proveedor, ...rest } = dto as UpdateLoteDto & { id_empresa?: unknown };
+      const lote = await this.findOwned(id, empresaId);
+      const { id_producto, id_proveedor, ...rest } = dto as UpdateLoteDto & { id_empresa?: unknown; estado?: unknown };
       delete (rest as { id_empresa?: unknown }).id_empresa;
+      delete (rest as { estado?: unknown }).estado;
 
       if (id_producto !== undefined) {
         const productoId = await this.resolveProducto(id_producto, empresaId as string);
@@ -111,7 +120,8 @@ export class LotesService {
       }
 
       Object.assign(lote, rest);
-      return await this.loteRepository.save(lote);
+      await this.loteRepository.save(lote);
+      return await this.findOne(id, empresaId);
     } catch (error) {
       console.error('Error al actualizar el lote:', error);
       if (error instanceof NotFoundException) {
@@ -123,7 +133,7 @@ export class LotesService {
 
   async remove(id: string, empresaId: string | null): Promise<void> {
     try {
-      const lote = await this.findOne(id, empresaId);
+      const lote = await this.findOwned(id, empresaId);
       await this.loteRepository.remove(lote);
     } catch (error) {
       console.error('Error al eliminar el lote:', error);
@@ -143,12 +153,15 @@ export class LotesService {
       if (!lote) {
         throw new NotFoundException('Lote no encontrado');
       }
+      if (lote.estado !== EstadoLote.ACTIVO || new Date(lote.fecha_venc) < new Date()) {
+        throw new BadRequestException('El producto no está disponible');
+      }
       if (cantidad > lote.stock_actual) {
         throw new BadRequestException('Cantidad solicitada supera el stock disponible');
       }
 
       lote.stock_actual -= cantidad;
-      lote.estado = lote.stock_actual === 0 ? EstadoLote.AGOTADO : EstadoLote.ACTIVO;
+      if (lote.stock_actual === 0) lote.estado = EstadoLote.AGOTADO;
 
       await this.loteRepository.save(lote);
     } catch (error) {

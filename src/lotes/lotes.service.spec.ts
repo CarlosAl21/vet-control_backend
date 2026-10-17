@@ -1,13 +1,13 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Equal } from 'typeorm';
 import { LotesService } from './lotes.service';
 import { Producto } from 'src/productos/entities/producto.entity';
 import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
 
 const mockRepo = () => ({
-  findOne: jest.fn(),
+  findOne: jest.fn(async () => ({ id_lote: 'lote-1' }) as any),
   create: jest.fn((data) => data),
-  save: jest.fn(async (data) => data),
+  save: jest.fn(async (data) => ({ id_lote: 'lote-1', ...data })),
   remove: jest.fn(async () => undefined),
   manager: { findOne: jest.fn() },
 });
@@ -17,7 +17,6 @@ const baseDto = () => ({
   fecha_entrada: new Date('2026-01-01'),
   fecha_venc: new Date('2099-01-01'),
   stock_actual: 10,
-  estado: 'activo',
   id_producto: { id_producto: 'prod-1' },
   id_proveedor: { id_proveedor: 'prov-1' },
 });
@@ -51,6 +50,20 @@ describe('LotesService clinic scope', () => {
         expect.objectContaining({ id_empresa: { id_empresa: 'emp-1' } }),
       );
       expect(repo.save).toHaveBeenCalled();
+    });
+
+    it('ignores a client estado and returns the findOne result with relation names', async () => {
+      const repo = mockRepo();
+      sameClinicManager(repo);
+      const full = { ...ownedLote(), id_producto: { id_producto: 'prod-1', nombre: 'Vacuna' } };
+      repo.save.mockResolvedValue({ id_lote: 'lote-1' });
+      repo.findOne.mockResolvedValue(full);
+      const service = new LotesService(repo as any);
+
+      const result = await service.create({ ...baseDto(), estado: 'agotado' } as any, 'emp-1');
+
+      expect(repo.create).toHaveBeenCalledWith(expect.objectContaining({ estado: 'activo' }));
+      expect(result).toBe(full);
     });
 
     it('scopes producto and proveedor lookups to the JWT empresa', async () => {
@@ -124,6 +137,51 @@ describe('LotesService clinic scope', () => {
       );
     });
 
+    it('does not mutate estado on read', async () => {
+      const repo = mockRepo();
+      repo.findOne.mockResolvedValue({ ...ownedLote(), estado: 'agotado' });
+      const service = new LotesService(repo as any);
+
+      const result = await service.findOne('lote-1', 'emp-1');
+
+      expect(result.estado).toBe('agotado');
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    it('reports an expired active lote as vencido without saving', async () => {
+      const repo = mockRepo();
+      repo.findOne.mockResolvedValue({ ...ownedLote(), estado: 'activo', fecha_venc: new Date('2020-01-01') });
+      const service = new LotesService(repo as any);
+
+      const result = await service.findOne('lote-1', 'emp-1');
+
+      expect(result.estado).toBe('vencido');
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    it('keeps agotado and inactivo even when expired', async () => {
+      const repo = mockRepo();
+      const service = new LotesService(repo as any);
+      for (const estado of ['agotado', 'inactivo']) {
+        repo.findOne.mockResolvedValue({ ...ownedLote(), estado, fecha_venc: new Date('2020-01-01') });
+        expect((await service.findOne('lote-1', 'emp-1')).estado).toBe(estado);
+      }
+    });
+
+    it('findAll derives vencido without saving', async () => {
+      const repo = mockRepo() as any;
+      repo.find = jest.fn().mockResolvedValue([
+        { ...ownedLote(), estado: 'activo', fecha_venc: new Date('2020-01-01') },
+        { ...ownedLote(), estado: 'activo' },
+      ]);
+      const service = new LotesService(repo);
+
+      const result = await service.findAll('emp-1');
+
+      expect(result.map((l) => l.estado)).toEqual(['vencido', 'activo']);
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
     it('throws NotFoundException when the lote is not owned', async () => {
       const repo = mockRepo();
       repo.findOne.mockResolvedValue(null);
@@ -159,20 +217,25 @@ describe('LotesService clinic scope', () => {
 
     it('saves an owned lote with same-clinic relations', async () => {
       const repo = mockRepo();
-      repo.findOne.mockResolvedValue(ownedLote());
+      repo.findOne.mockImplementation(async () => ({ ...ownedLote(), stock_actual: 1 }));
+      repo.save.mockImplementation(async (l) => {
+        repo.findOne.mockResolvedValue({ ...l, id_proveedor: { id_proveedor: 'prov-1', nombre: 'Prov' } });
+        return l;
+      });
       sameClinicManager(repo);
       const service = new LotesService(repo as any);
 
       const result = await service.update(
         'lote-1',
-        { stock_actual: 5, id_proveedor: { id_proveedor: 'prov-1' } } as any,
+        { stock_actual: 5, estado: 'agotado', id_proveedor: { id_proveedor: 'prov-1' } } as any,
         'emp-1',
       );
 
+      expect(repo.save).toHaveBeenCalledWith(expect.not.objectContaining({ estado: 'agotado' }));
       expect(result).toEqual(
         expect.objectContaining({
           stock_actual: 5,
-          id_proveedor: { id_proveedor: 'prov-1' },
+          id_proveedor: { id_proveedor: 'prov-1', nombre: 'Prov' },
           id_empresa: { id_empresa: 'emp-1' },
         }),
       );
@@ -202,6 +265,29 @@ describe('LotesService clinic scope', () => {
         where: { id_lote: Equal('lote-1'), id_empresa: Equal('emp-1') },
       });
       expect(repo.save).toHaveBeenCalledWith(expect.objectContaining({ stock_actual: 3, estado: 'activo' }));
+    });
+
+    it('marks the lote agotado only when stock reaches zero', async () => {
+      const repo = mockRepo();
+      repo.findOne.mockResolvedValue({ ...ownedLote(), stock_actual: 3 });
+      const service = new LotesService(repo as any);
+
+      await service.descontarStock('lote-1', 3, 'emp-1');
+
+      expect(repo.save).toHaveBeenCalledWith(expect.objectContaining({ stock_actual: 0, estado: 'agotado' }));
+    });
+
+    it.each([
+      ['inactivo', new Date('2099-01-01')],
+      ['vencido', new Date('2099-01-01')],
+      ['activo', new Date('2020-01-01')],
+    ])('rejects selling from a %s lote (fecha %s) and does not save', async (estado, fecha_venc) => {
+      const repo = mockRepo();
+      repo.findOne.mockResolvedValue({ ...ownedLote(), stock_actual: 5, estado, fecha_venc });
+      const service = new LotesService(repo as any);
+
+      await expect(service.descontarStock('lote-1', 1, 'emp-1')).rejects.toBeInstanceOf(BadRequestException);
+      expect(repo.save).not.toHaveBeenCalled();
     });
 
     it('throws NotFoundException for a lote from another clinic and does not save', async () => {
