@@ -1,3 +1,4 @@
+import { Requester, userAccess } from 'src/auth/user-access';
 import {
   Injectable,
   NotFoundException,
@@ -150,8 +151,12 @@ export class FacturasService {
     });
   }
 
-  async findByUserId(id_usuario: string) {
+  async findByUserId(id_usuario: string, requester: Requester) {
     try {
+      const access = userAccess(requester, id_usuario);
+      if (!access) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
       const user = await this.usuarioRepository.findOne({
         where: { id_usuario }, relations: ['clientes']
       });
@@ -164,7 +169,11 @@ export class FacturasService {
       }
       const clienteIds = clientes.map(cliente => cliente.id_cliente);
       const facturas = await this.facturaRepository.find({
-        where: { cliente: { id_cliente: In(clienteIds) } },
+        where: {
+          cliente: { id_cliente: In(clienteIds) },
+          // Staff only see the facturas of their own clinic; the owner sees every clinic's.
+          ...(access === 'staff' ? { id_empresa: Equal(requester.empresaId) } : {}),
+        },
         relations: ['cliente', 'id_empresa', 'detalles'],
       });
       if (facturas.length === 0) {

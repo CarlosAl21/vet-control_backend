@@ -118,8 +118,8 @@ export class ClientesController {
   @ApiOperation({ summary: 'Obtener clientes por ID de usuario' })
   @ApiResponse({ status: 200, description: 'Clientes encontrados.' })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
-  findByUserId(@Param('id_usuario') id_usuario: string) {
-    return this.clientesService.FindByUserId(id_usuario);
+  findByUserId(@Param('id_usuario') id_usuario: string, @CurrentUser() user: any) {
+    return this.clientesService.FindByUserId(id_usuario, user);
   }
 
   @Get('userEmail/:email/:empresaId')
