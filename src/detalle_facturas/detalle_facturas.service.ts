@@ -6,7 +6,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Equal, Repository } from 'typeorm';
+import { EntityManager, Equal, Repository } from 'typeorm';
 import { DetalleFactura } from './entities/detalle_factura.entity';
 import { CreateDetalleFacturaDto } from './dto/create-detalle_factura.dto';
 import { UpdateDetalleFacturaDto } from './dto/update-detalle_factura.dto';
@@ -37,19 +37,22 @@ export class DetalleFacturaService {
       if (lote.estado === EstadoLote.VENCIDO || lote.estado === EstadoLote.AGOTADO) {
         throw new BadRequestException('El producto no está disponible');
       }
-
-      await this.lotesService.descontarStock(id_lote, dto.cantidad, empresaId);
     }
 
     const subtotal = dto.cantidad * dto.precio_unitario;
-    const detalle = this.detalleRepo.create({
-      ...rest,
-      subtotal,
-      id_factura: { id_factura: facturaId } as Factura,
-      id_lote: id_lote ? { id_lote } as Lote : null,
+    // Stock and detalle commit together: a failed save rolls the decrement back.
+    return this.detalleRepo.manager.transaction(async (manager) => {
+      if (id_lote) {
+        await this.lotesService.descontarStock(id_lote, dto.cantidad, empresaId, manager);
+      }
+      const detalle = manager.create(DetalleFactura, {
+        ...rest,
+        subtotal,
+        id_factura: { id_factura: facturaId } as Factura,
+        id_lote: id_lote ? { id_lote } as Lote : null,
+      });
+      return manager.save(detalle);
     });
-
-    return this.detalleRepo.save(detalle);
   }
 
   findAll(empresaId: string | null) {
@@ -71,6 +74,8 @@ export class DetalleFacturaService {
   async update(id: string, dto: UpdateDetalleFacturaDto, empresaId: string | null) {
     try {
       const detalle = await this.findOwned(id, empresaId);
+      const loteAnterior = detalle.id_lote?.id_lote ?? null;
+      const cantidadAnterior = detalle.cantidad;
       const cantidad = dto.cantidad ?? detalle.cantidad;
       const precio = dto.precio_unitario ?? detalle.precio_unitario;
       const { id_lote, id_factura, ...rest } = dto;
@@ -81,11 +86,22 @@ export class DetalleFacturaService {
       if (id_lote) {
         detalle.id_lote = await this.findLote(id_lote, empresaId as string);
       }
+      const loteNuevo = detalle.id_lote?.id_lote ?? null;
       this.detalleRepo.merge(detalle, { ...rest, subtotal: cantidad * precio });
-      return await this.detalleRepo.save(detalle);
+
+      // The stock adjustment and the detalle save commit or roll back together.
+      return await this.detalleRepo.manager.transaction(async (manager) => {
+        await this.ajustarStock(
+          { lote: loteAnterior, cantidad: cantidadAnterior },
+          { lote: loteNuevo, cantidad },
+          empresaId,
+          manager,
+        );
+        return manager.save(detalle);
+      });
     } catch (error) {
       console.error('Error al actualizar el detalle de factura:', error);
-      if (error instanceof NotFoundException) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
         throw error;
       }
       throw new InternalServerErrorException('Error al actualizar el detalle de factura');
@@ -95,7 +111,13 @@ export class DetalleFacturaService {
   async remove(id: string, empresaId: string | null) {
     try {
       const detalle = await this.findOwned(id, empresaId);
-      return await this.detalleRepo.remove(detalle);
+      // Deleting a sale gives its units back to the lote, in the same transaction.
+      return await this.detalleRepo.manager.transaction(async (manager) => {
+        if (detalle.id_lote) {
+          await this.lotesService.reponerStock(detalle.id_lote.id_lote, detalle.cantidad, empresaId, manager);
+        }
+        return manager.remove(detalle);
+      });
     } catch (error) {
       console.error('Error al eliminar el detalle de factura:', error);
       if (error instanceof NotFoundException) {
@@ -103,6 +125,23 @@ export class DetalleFacturaService {
       }
       throw new InternalServerErrorException('Error al eliminar el detalle de factura');
     }
+  }
+
+  /** Moves the lote stock from what the detalle consumed before to what it consumes now. */
+  private async ajustarStock(
+    antes: { lote: string | null; cantidad: number },
+    ahora: { lote: string | null; cantidad: number },
+    empresaId: string | null,
+    manager: EntityManager,
+  ): Promise<void> {
+    if (antes.lote && antes.lote === ahora.lote) {
+      const delta = ahora.cantidad - antes.cantidad;
+      if (delta > 0) await this.lotesService.descontarStock(ahora.lote, delta, empresaId, manager);
+      if (delta < 0) await this.lotesService.reponerStock(ahora.lote, -delta, empresaId, manager);
+      return;
+    }
+    if (antes.lote) await this.lotesService.reponerStock(antes.lote, antes.cantidad, empresaId, manager);
+    if (ahora.lote) await this.lotesService.descontarStock(ahora.lote, ahora.cantidad, empresaId, manager);
   }
 
   /**
