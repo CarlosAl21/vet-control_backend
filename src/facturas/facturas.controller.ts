@@ -97,7 +97,7 @@ export class FacturasController {
   @ApiParam({ name: 'id_usuario', description: 'ID del usuario', example: 'uuid-usuario-1234' })
   @ApiResponse({ status: 200, description: 'Lista de facturas para el usuario.' })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado o sin facturas.' })
-  findByUserId(@Param('id_usuario') id_usuario: string) {
-    return this.facturasService.findByUserId(id_usuario);
+  findByUserId(@Param('id_usuario') id_usuario: string, @CurrentUser() user: any) {
+    return this.facturasService.findByUserId(id_usuario, user);
   }
 }

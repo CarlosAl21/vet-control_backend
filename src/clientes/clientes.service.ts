@@ -1,3 +1,4 @@
+import { Requester, userAccess } from 'src/auth/user-access';
 import {
   Injectable,
   BadRequestException,
@@ -204,14 +205,21 @@ export class ClientesService {
     }
   }
 
-  async FindByUserId(id_usuario: string) {
+  async FindByUserId(id_usuario: string, requester: Requester) {
     try {
+      const access = userAccess(requester, id_usuario);
+      if (!access) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
       const usuario = await this.usuarioRepository.findOne({
         where: { id_usuario: id_usuario },
         relations: ['clientes', 'clientes.id_empresa'],
       });
       if (!usuario) {
         throw new NotFoundException('Usuario no encontrado');
+      }
+      if (access === 'staff') {
+        return usuario.clientes.filter((c) => c.id_empresa?.id_empresa === requester.empresaId);
       }
       return usuario.clientes;
     } catch (error) {
