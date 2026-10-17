@@ -6,7 +6,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Equal, Repository } from 'typeorm';
+import { EntityManager, Equal, Repository } from 'typeorm';
 import { EstadoLote, Lote } from './entities/lote.entity';
 import { CreateLoteDto } from './dto/create-lote.dto';
 import { UpdateLoteDto } from './dto/update-lote.dto';
@@ -144,10 +144,20 @@ export class LotesService {
     }
   }
 
-  async descontarStock(id_lote: string, cantidad: number, empresaId: string | null): Promise<void> {
+  /**
+   * Atomically takes `cantidad` units out of an active lote of the clinic. Pass the
+   * transaction's `manager` so the decrement commits or rolls back with the caller's writes.
+   */
+  async descontarStock(
+    id_lote: string,
+    cantidad: number,
+    empresaId: string | null,
+    manager: EntityManager = this.loteRepository.manager,
+  ): Promise<void> {
     try {
+      this.assertCantidad(cantidad);
       // Equal() keeps the tenant filter even when empresaId is null (no rows -> 404).
-      const lote = await this.loteRepository.findOne({
+      const lote = await manager.findOne(Lote, {
         where: { id_lote: Equal(id_lote), id_empresa: Equal(empresaId) },
       });
       if (!lote) {
@@ -160,16 +170,64 @@ export class LotesService {
         throw new BadRequestException('Cantidad solicitada supera el stock disponible');
       }
 
-      lote.stock_actual -= cantidad;
-      if (lote.stock_actual === 0) lote.estado = EstadoLote.AGOTADO;
-
-      await this.loteRepository.save(lote);
+      // The guard lives in the UPDATE itself, so a concurrent sale cannot overwrite this one.
+      const result = await manager
+        .createQueryBuilder()
+        .update(Lote)
+        .set({
+          stock_actual: () => 'stock_actual - :cantidad',
+          estado: () => `CASE WHEN stock_actual - :cantidad = 0 THEN '${EstadoLote.AGOTADO}' ELSE estado END`,
+        })
+        .where('id_lote = :id_lote AND id_empresa = :empresaId', { id_lote, empresaId })
+        .andWhere('estado = :activo AND stock_actual >= :cantidad', { activo: EstadoLote.ACTIVO, cantidad })
+        .setParameter('cantidad', cantidad)
+        .execute();
+      if (!result.affected) {
+        throw new BadRequestException('Cantidad solicitada supera el stock disponible');
+      }
     } catch (error) {
       console.error('Error al descontar stock del lote:', error);
       if (error instanceof NotFoundException || error instanceof BadRequestException) {
         throw error;
       }
       throw new InternalServerErrorException('Error al descontar stock del lote');
+    }
+  }
+
+  /** Atomically gives `cantidad` units back to a lote of the clinic; an agotado lote becomes activo again. */
+  async reponerStock(
+    id_lote: string,
+    cantidad: number,
+    empresaId: string | null,
+    manager: EntityManager = this.loteRepository.manager,
+  ): Promise<void> {
+    try {
+      this.assertCantidad(cantidad);
+      const result = await manager
+        .createQueryBuilder()
+        .update(Lote)
+        .set({
+          stock_actual: () => 'stock_actual + :cantidad',
+          estado: () => `CASE WHEN estado = '${EstadoLote.AGOTADO}' THEN '${EstadoLote.ACTIVO}' ELSE estado END`,
+        })
+        .where('id_lote = :id_lote AND id_empresa = :empresaId', { id_lote, empresaId })
+        .setParameter('cantidad', cantidad)
+        .execute();
+      if (!result.affected) {
+        throw new NotFoundException('Lote no encontrado');
+      }
+    } catch (error) {
+      console.error('Error al reponer stock del lote:', error);
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al reponer stock del lote');
+    }
+  }
+
+  private assertCantidad(cantidad: number): void {
+    if (!Number.isInteger(cantidad) || cantidad <= 0) {
+      throw new BadRequestException('La cantidad debe ser un entero positivo');
     }
   }
 

@@ -1,6 +1,7 @@
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Equal } from 'typeorm';
 import { LotesService } from './lotes.service';
+import { Lote } from './entities/lote.entity';
 import { Producto } from 'src/productos/entities/producto.entity';
 import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
 
@@ -253,50 +254,124 @@ describe('LotesService clinic scope', () => {
     });
   });
 
+  // Manager whose lote lookup returns `lote` and whose UPDATE query builder reports `affected` rows.
+  const stockManager = (lote: unknown, affected = 1) => {
+    const qb: Record<string, jest.Mock> = {};
+    for (const m of ['update', 'set', 'where', 'andWhere', 'setParameter']) qb[m] = jest.fn(() => qb);
+    qb.execute = jest.fn(async () => ({ affected }));
+    return { qb, findOne: jest.fn(async () => lote), createQueryBuilder: jest.fn(() => qb) };
+  };
+
   describe('descontarStock', () => {
-    it('scopes the lote lookup to the JWT empresa and decrements stock', async () => {
-      const repo = mockRepo();
-      repo.findOne.mockResolvedValue({ ...ownedLote(), stock_actual: 5 });
-      const service = new LotesService(repo as any);
+    it('scopes the lote lookup to the JWT empresa and decrements stock atomically', async () => {
+      const manager = stockManager({ ...ownedLote(), stock_actual: 5 });
+      const service = new LotesService(mockRepo() as any);
 
-      await service.descontarStock('lote-1', 2, 'emp-1');
+      await service.descontarStock('lote-1', 2, 'emp-1', manager as any);
 
-      expect(repo.findOne).toHaveBeenCalledWith({
+      expect(manager.findOne).toHaveBeenCalledWith(Lote, {
         where: { id_lote: Equal('lote-1'), id_empresa: Equal('emp-1') },
       });
-      expect(repo.save).toHaveBeenCalledWith(expect.objectContaining({ stock_actual: 3, estado: 'activo' }));
+      expect(manager.qb.update).toHaveBeenCalledWith(Lote);
+      expect(manager.qb.where).toHaveBeenCalledWith(expect.any(String), { id_lote: 'lote-1', empresaId: 'emp-1' });
+      expect(manager.qb.setParameter).toHaveBeenCalledWith('cantidad', 2);
+      expect(manager.qb.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('marks the lote agotado only when stock reaches zero', async () => {
+    it('uses the repository manager when no transaction manager is given', async () => {
       const repo = mockRepo();
-      repo.findOne.mockResolvedValue({ ...ownedLote(), stock_actual: 3 });
+      const manager = stockManager({ ...ownedLote(), stock_actual: 5 });
+      repo.manager = manager as any;
       const service = new LotesService(repo as any);
 
-      await service.descontarStock('lote-1', 3, 'emp-1');
+      await service.descontarStock('lote-1', 1, 'emp-1');
 
-      expect(repo.save).toHaveBeenCalledWith(expect.objectContaining({ stock_actual: 0, estado: 'agotado' }));
+      expect(manager.qb.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects when a concurrent sale already took the stock (no row updated)', async () => {
+      const manager = stockManager({ ...ownedLote(), stock_actual: 5 }, 0);
+      const service = new LotesService(mockRepo() as any);
+
+      await expect(service.descontarStock('lote-1', 2, 'emp-1', manager as any)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+    });
+
+    it('rejects a quantity above the stock without updating', async () => {
+      const manager = stockManager({ ...ownedLote(), stock_actual: 1 });
+      const service = new LotesService(mockRepo() as any);
+
+      await expect(service.descontarStock('lote-1', 2, 'emp-1', manager as any)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+      expect(manager.qb.execute).not.toHaveBeenCalled();
+    });
+
+    it.each([0, -3, 1.5])('rejects the non-positive-integer quantity %s without touching stock', async (cantidad) => {
+      const manager = stockManager({ ...ownedLote(), stock_actual: 5 });
+      const service = new LotesService(mockRepo() as any);
+
+      await expect(service.descontarStock('lote-1', cantidad, 'emp-1', manager as any)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+      expect(manager.qb.execute).not.toHaveBeenCalled();
     });
 
     it.each([
       ['inactivo', new Date('2099-01-01')],
       ['vencido', new Date('2099-01-01')],
       ['activo', new Date('2020-01-01')],
-    ])('rejects selling from a %s lote (fecha %s) and does not save', async (estado, fecha_venc) => {
-      const repo = mockRepo();
-      repo.findOne.mockResolvedValue({ ...ownedLote(), stock_actual: 5, estado, fecha_venc });
-      const service = new LotesService(repo as any);
+    ])('rejects selling from a %s lote (fecha %s) and does not update', async (estado, fecha_venc) => {
+      const manager = stockManager({ ...ownedLote(), stock_actual: 5, estado, fecha_venc });
+      const service = new LotesService(mockRepo() as any);
 
-      await expect(service.descontarStock('lote-1', 1, 'emp-1')).rejects.toBeInstanceOf(BadRequestException);
-      expect(repo.save).not.toHaveBeenCalled();
+      await expect(service.descontarStock('lote-1', 1, 'emp-1', manager as any)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+      expect(manager.qb.execute).not.toHaveBeenCalled();
     });
 
-    it('throws NotFoundException for a lote from another clinic and does not save', async () => {
-      const repo = mockRepo();
-      repo.findOne.mockResolvedValue(null);
-      const service = new LotesService(repo as any);
+    it('throws NotFoundException for a lote from another clinic and does not update', async () => {
+      const manager = stockManager(null);
+      const service = new LotesService(mockRepo() as any);
 
-      await expect(service.descontarStock('lote-1', 2, 'emp-2')).rejects.toBeInstanceOf(NotFoundException);
-      expect(repo.save).not.toHaveBeenCalled();
+      await expect(service.descontarStock('lote-1', 2, 'emp-2', manager as any)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+      expect(manager.qb.execute).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('reponerStock', () => {
+    it('atomically gives the units back, scoped to the JWT empresa', async () => {
+      const manager = stockManager(null);
+      const service = new LotesService(mockRepo() as any);
+
+      await service.reponerStock('lote-1', 4, 'emp-1', manager as any);
+
+      expect(manager.qb.update).toHaveBeenCalledWith(Lote);
+      expect(manager.qb.where).toHaveBeenCalledWith(expect.any(String), { id_lote: 'lote-1', empresaId: 'emp-1' });
+      expect(manager.qb.setParameter).toHaveBeenCalledWith('cantidad', 4);
+    });
+
+    it('throws NotFoundException when no lote of the clinic matches', async () => {
+      const manager = stockManager(null, 0);
+      const service = new LotesService(mockRepo() as any);
+
+      await expect(service.reponerStock('lote-1', 4, 'emp-2', manager as any)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+    });
+
+    it('rejects a non-positive quantity', async () => {
+      const manager = stockManager(null);
+      const service = new LotesService(mockRepo() as any);
+
+      await expect(service.reponerStock('lote-1', -1, 'emp-1', manager as any)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+      expect(manager.qb.execute).not.toHaveBeenCalled();
     });
   });
 });
