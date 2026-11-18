@@ -4,6 +4,7 @@ import { Producto } from 'src/productos/entities/producto.entity';
 import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { dateOnlyTransformer } from 'src/common/date-only.transformer';
 
 export enum EstadoLote {
     ACTIVO = 'activo',
@@ -23,11 +24,11 @@ export class Lote {
   codigo_lote: string;
 
   @ApiProperty({ example: '2024-06-01', description: 'Fecha de entrada del lote' })
-  @Column({ type: 'date' })
+  @Column({ type: 'date', transformer: dateOnlyTransformer })
   fecha_entrada: Date;
 
   @ApiProperty({ example: '2025-06-01', description: 'Fecha de vencimiento del lote' })
-  @Column({ type: 'date' })
+  @Column({ type: 'date', transformer: dateOnlyTransformer })
   fecha_venc: Date;
 
   @ApiProperty({ example: 100, description: 'Stock actual del lote' })
