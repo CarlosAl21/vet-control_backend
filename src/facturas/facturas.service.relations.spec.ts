@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Equal, getMetadataArgsStorage } from 'typeorm';
 import { FacturasService } from './facturas.service';
 import { Factura } from './entities/factura.entity';
@@ -71,5 +72,39 @@ describe('FacturasService relations', () => {
     expect(relations).toContain('detalles.id_lote');
     expect(relations.filter((path: string) => !relationPathExists(Factura, path))).toEqual([]);
     expect(where.id_empresa).toEqual(Equal('empresa-1'));
+  });
+
+  describe('findByEmpresa', () => {
+    const build = () => {
+      const facturaRepository = { find: jest.fn().mockResolvedValue([]) };
+      const service = new FacturasService(
+        facturaRepository as any,
+        {} as any,
+        {} as any,
+        {} as any,
+        {} as any,
+        {} as any,
+      );
+      return { facturaRepository, service };
+    };
+
+    it('loads only detalles and the lote of each detalle, scoped to the JWT empresa', async () => {
+      const { facturaRepository, service } = build();
+
+      await service.findByEmpresa('empresa-1', 'empresa-1');
+
+      const { relations, where } = facturaRepository.find.mock.calls[0][0];
+      expect(relations).toEqual(['detalles', 'detalles.id_lote']);
+      expect(relations.filter((path: string) => !relationPathExists(Factura, path))).toEqual([]);
+      expect(where).toEqual({ id_empresa: Equal('empresa-1') });
+    });
+
+    it('answers 404 without querying for another clinic or a user without empresa', async () => {
+      const { facturaRepository, service } = build();
+
+      await expect(service.findByEmpresa('empresa-2', 'empresa-1')).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.findByEmpresa('empresa-1', null)).rejects.toBeInstanceOf(NotFoundException);
+      expect(facturaRepository.find).not.toHaveBeenCalled();
+    });
   });
 });
