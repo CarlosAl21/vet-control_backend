@@ -198,7 +198,7 @@ export class FacturasService {
   findAll(empresaId: string): Promise<Factura[]> {
     return this.facturaRepository.find({
       where: { id_empresa: Equal(empresaId) },
-      relations: ['cliente', 'cliente.id_usuario', 'detalles'],
+      relations: ['cliente', 'cliente.id_usuario', 'detalles', 'detalles.id_lote'],
     });
   }
 
@@ -316,7 +316,7 @@ export class FacturasService {
           // Staff only see the facturas of their own clinic; the owner sees every clinic's.
           ...(access === 'staff' ? { id_empresa: Equal(requester.empresaId) } : {}),
         },
-        relations: ['cliente', 'id_empresa', 'detalles'],
+        relations: ['cliente', 'id_empresa', 'detalles', 'detalles.id_lote'],
       });
       if (facturas.length === 0) {
         throw new NotFoundException('No se encontraron facturas para el usuario');
