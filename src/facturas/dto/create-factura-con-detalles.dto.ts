@@ -10,6 +10,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -34,12 +35,22 @@ export class CreateFacturaDetalleItemDto {
 
   @ApiPropertyOptional({
     example: 'uuid-lote-456',
-    description: 'Lote del que se descuenta el stock (opcional)',
+    description:
+      'Lote del que se descuenta el stock (opcional). Con id_producto, debe pertenecer a ese producto.',
   })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   id_lote?: string;
+
+  @ApiPropertyOptional({
+    example: 'uuid-producto-789',
+    description:
+      'Producto cuyo stock se descuenta (opcional). Sin id_lote, el servidor elige lotes por FEFO y puede partir la línea en varios detalles.',
+  })
+  @IsOptional()
+  @IsUUID()
+  id_producto?: string;
 }
 
 /** The server computes every subtotal and the total; any client value for them is discarded. */
