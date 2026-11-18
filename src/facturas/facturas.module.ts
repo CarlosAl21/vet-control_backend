@@ -6,11 +6,12 @@ import { Factura } from './entities/factura.entity';
 import { Cliente } from 'src/clientes/entities/cliente.entity';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
 import { MailModule } from 'src/mail/mail.module';
+import { LotesModule } from 'src/lotes/lotes.module';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Factura, Cliente, Empresa, Usuario]),
-  MailModule],
+  MailModule, LotesModule],
   controllers: [FacturasController],
   providers: [FacturasService],
   exports: [FacturasService],

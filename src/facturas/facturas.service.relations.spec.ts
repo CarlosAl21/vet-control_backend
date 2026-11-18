@@ -23,6 +23,7 @@ describe('FacturasService relations', () => {
       {} as any,
       {} as any,
       {} as any,
+      {} as any,
     );
 
     await service.findAll('empresa-1');
