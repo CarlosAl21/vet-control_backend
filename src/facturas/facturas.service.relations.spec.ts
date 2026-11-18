@@ -1,4 +1,4 @@
-import { getMetadataArgsStorage } from 'typeorm';
+import { Equal, getMetadataArgsStorage } from 'typeorm';
 import { FacturasService } from './facturas.service';
 import { Factura } from './entities/factura.entity';
 
@@ -31,5 +31,45 @@ describe('FacturasService relations', () => {
     const { relations } = facturaRepository.find.mock.calls[0][0];
     const invalid = relations.filter((path: string) => !relationPathExists(Factura, path));
     expect(invalid).toEqual([]);
+  });
+
+  it('findAll loads the lote of each detalle (null for a detalle without lote)', async () => {
+    const facturaRepository = { find: jest.fn().mockResolvedValue([]) };
+    const service = new FacturasService(
+      facturaRepository as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+    );
+
+    await service.findAll('empresa-1');
+
+    const { relations, where } = facturaRepository.find.mock.calls[0][0];
+    expect(relations).toEqual(expect.arrayContaining(['detalles', 'detalles.id_lote']));
+    expect(where.id_empresa).toEqual(Equal('empresa-1'));
+    // detalle.id_lote is a nullable ManyToOne: TypeORM yields null when the FK is null.
+    expect(relationPathExists(Factura, 'detalles.id_lote')).toBe(true);
+  });
+
+  it('findByUserId loads the lote of each detalle', async () => {
+    const facturaRepository = { find: jest.fn().mockResolvedValue([{ id_factura: 1 }]) };
+    const usuarioRepository = { findOne: jest.fn().mockResolvedValue({ clientes: [{ id_cliente: 'c-1' }] }) };
+    const service = new FacturasService(
+      facturaRepository as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      usuarioRepository as any,
+      {} as any,
+    );
+
+    await service.findByUserId('u-1', { userId: 'u-9', rol: 'admin', empresaId: 'empresa-1' });
+
+    const { relations, where } = facturaRepository.find.mock.calls[0][0];
+    expect(relations).toContain('detalles.id_lote');
+    expect(relations.filter((path: string) => !relationPathExists(Factura, path))).toEqual([]);
+    expect(where.id_empresa).toEqual(Equal('empresa-1'));
   });
 });
