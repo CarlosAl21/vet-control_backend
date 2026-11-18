@@ -88,13 +88,13 @@ describe('FacturasService relations', () => {
       return { facturaRepository, service };
     };
 
-    it('loads only detalles and the lote of each detalle, scoped to the JWT empresa', async () => {
+    it('loads the cliente, the detalles and the lote of each detalle, scoped to the JWT empresa', async () => {
       const { facturaRepository, service } = build();
 
       await service.findByEmpresa('empresa-1', 'empresa-1');
 
       const { relations, where } = facturaRepository.find.mock.calls[0][0];
-      expect(relations).toEqual(['detalles', 'detalles.id_lote']);
+      expect(relations).toEqual(['cliente', 'detalles', 'detalles.id_lote']);
       expect(relations.filter((path: string) => !relationPathExists(Factura, path))).toEqual([]);
       expect(where).toEqual({ id_empresa: Equal('empresa-1') });
     });

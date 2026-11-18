@@ -290,7 +290,7 @@ export class FacturasService {
     }
     return this.facturaRepository.find({
       where: { id_empresa: Equal(empresaId) },
-      relations: ['detalles', 'detalles.id_lote'],
+      relations: ['cliente', 'detalles', 'detalles.id_lote'],
     });
   }
 

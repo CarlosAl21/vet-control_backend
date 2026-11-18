@@ -187,7 +187,7 @@ describe('FacturasService clinic scope', () => {
 
       expect(facturaRepo.find).toHaveBeenCalledWith({
         where: { id_empresa: Equal('emp-1') },
-        relations: ['detalles', 'detalles.id_lote'],
+        relations: ['cliente', 'detalles', 'detalles.id_lote'],
       });
       expect(result).toHaveLength(1);
     });
