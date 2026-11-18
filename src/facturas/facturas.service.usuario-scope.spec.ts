@@ -11,6 +11,7 @@ function buildService() {
     {} as any,
     {} as any,
     usuarioRepository as any,
+    {} as any,
   );
   return { service, facturaRepository, usuarioRepository };
 }

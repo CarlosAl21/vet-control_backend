@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { FacturasService } from './facturas.service';
 import { CreateFacturaDto } from './dto/create-factura.dto';
+import { CreateFacturaConDetallesDto } from './dto/create-factura-con-detalles.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
 import {
   ApiTags,
@@ -31,6 +32,19 @@ export class FacturasController {
   @ApiResponse({ status: 404, description: 'Cliente no encontrado.' })
   create(@Body() createFacturaDto: CreateFacturaDto, @CurrentUser() user: any) {
     return this.facturasService.create(createFacturaDto, user.empresaId);
+  }
+
+  @Post('con-detalles')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.RECEPCIONISTA)
+  @ApiOperation({ summary: 'Crear una factura con todos sus detalles en una sola transacción' })
+  @ApiBody({ type: CreateFacturaConDetallesDto })
+  @ApiResponse({ status: 201, description: 'Factura creada con sus detalles; el stock de los lotes fue descontado.' })
+  @ApiResponse({ status: 400, description: 'Datos inválidos, lote no disponible o stock insuficiente (nada se guarda).' })
+  @ApiResponse({ status: 403, description: 'Usuario sin empresa.' })
+  @ApiResponse({ status: 404, description: 'Cliente o lote no encontrado (nada se guarda).' })
+  createWithDetalles(@Body() dto: CreateFacturaConDetallesDto, @CurrentUser() user: any) {
+    return this.facturasService.createWithDetalles(dto, user.empresaId);
   }
 
   @Get()

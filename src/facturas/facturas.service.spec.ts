@@ -38,6 +38,7 @@ describe('FacturasService clinic scope', () => {
       mockRepo() as any,
       mail as any,
       mockRepo() as any,
+      {} as any,
     );
   });
 

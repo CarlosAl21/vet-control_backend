@@ -15,6 +15,10 @@ import { Cliente } from 'src/clientes/entities/cliente.entity';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
 import { MailService } from 'src/mail/mail.service';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
+import { LotesService } from 'src/lotes/lotes.service';
+import { Lote } from 'src/lotes/entities/lote.entity';
+import { DetalleFactura } from 'src/detalle_facturas/entities/detalle_factura.entity';
+import { CreateFacturaConDetallesDto } from './dto/create-factura-con-detalles.dto';
 
 @Injectable()
 export class FacturasService {
@@ -28,6 +32,7 @@ export class FacturasService {
     private readonly mailService: MailService, // Inyecta el servicio de correo
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
+    private readonly lotesService: LotesService,
   ) {}
 
   async create(createFacturaDto: CreateFacturaDto, empresaId: string | null) {
@@ -51,6 +56,57 @@ export class FacturasService {
     });
 
     return this.facturaRepository.save(nuevaFactura);
+  }
+
+  /**
+   * Factura, detalles and lote stock commit together: any failing detalle (lote of another
+   * clinic, unavailable, short on stock) rolls back everything, including earlier decrements.
+   * Subtotals and total are computed here; the client never supplies them.
+   */
+  async createWithDetalles(dto: CreateFacturaConDetallesDto, empresaId: string | null) {
+    if (!empresaId) {
+      throw new ForbiddenException('El usuario no pertenece a ninguna empresa');
+    }
+
+    const { id_cliente, detalles, ...rest } = dto as CreateFacturaConDetallesDto & { id_empresa?: unknown };
+    delete (rest as { id_empresa?: unknown }).id_empresa;
+    const cliente = await this.findCliente(id_cliente, empresaId);
+
+    const round2 = (n: number) => Math.round(n * 100) / 100;
+    const items = detalles.map((d) => ({ ...d, subtotal: round2(d.cantidad * d.precio_unitario) }));
+    const total = round2(items.reduce((sum, d) => sum + d.subtotal, 0));
+
+    return this.facturaRepository.manager.transaction(async (manager) => {
+      const factura = await manager.save(
+        manager.create(Factura, {
+          ...rest,
+          total,
+          cliente,
+          estado: dto.estado || 'pendiente',
+          id_empresa: { id_empresa: empresaId },
+        }),
+      );
+
+      const guardados: DetalleFactura[] = [];
+      for (const { id_lote, ...item } of items) {
+        if (id_lote) {
+          // Checks the lote belongs to the clinic, is available and has stock, inside this transaction.
+          await this.lotesService.descontarStock(id_lote, item.cantidad, empresaId, manager);
+        }
+        guardados.push(
+          await manager.save(
+            manager.create(DetalleFactura, {
+              ...item,
+              id_factura: { id_factura: factura.id_factura } as Factura,
+              id_lote: id_lote ? ({ id_lote } as Lote) : null,
+            }),
+          ),
+        );
+      }
+
+      factura.detalles = guardados;
+      return factura;
+    });
   }
 
   findAll(empresaId: string): Promise<Factura[]> {
