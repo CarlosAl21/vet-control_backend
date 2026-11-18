@@ -280,7 +280,23 @@ export class FacturasService {
 
   async remove(id: string, empresaId: string | null): Promise<void> {
     const factura = await this.findOne(id, empresaId);
-    await this.facturaRepository.remove(factura);
+    // Deleting a factura deletes its detalles and gives their units back to the lotes, in one
+    // transaction (the same stock rule as deleting a single detalle). The detalles are read
+    // with a QueryBuilder: a find-where nested through `id_factura` shares the FK column name.
+    await this.facturaRepository.manager.transaction(async (manager) => {
+      const detalles = await manager
+        .createQueryBuilder(DetalleFactura, 'detalle')
+        .leftJoinAndSelect('detalle.id_lote', 'lote')
+        .where('detalle.id_factura = :idFactura', { idFactura: factura.id_factura })
+        .getMany();
+      for (const detalle of detalles) {
+        if (detalle.id_lote) {
+          await this.lotesService.reponerStock(detalle.id_lote.id_lote, detalle.cantidad, empresaId, manager);
+        }
+      }
+      await manager.remove(detalles);
+      await manager.remove(factura);
+    });
   }
 
   async findByEmpresa(id_empresa: string, empresaId: string | null): Promise<Factura[]> {

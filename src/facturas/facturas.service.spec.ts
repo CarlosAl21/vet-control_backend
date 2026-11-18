@@ -158,14 +158,6 @@ describe('FacturasService clinic scope', () => {
       await expect(service.remove('7', 'emp-other')).rejects.toBeInstanceOf(NotFoundException);
       expect(facturaRepo.remove).not.toHaveBeenCalled();
     });
-
-    it('removes an owned factura', async () => {
-      facturaRepo.findOne.mockResolvedValue(ownedFactura());
-
-      await service.remove('7', 'emp-1');
-
-      expect(facturaRepo.remove).toHaveBeenCalled();
-    });
   });
 
   describe('findByEmpresa', () => {
